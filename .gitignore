@@ -1,1 +1,50 @@
+# 依赖
 /vendor/
+composer.lock
+
+# IDE 和编辑器
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# PHP
+.phpunit.result.cache
+.phpunit.cache
+composer.phar
+
+# 测试和临时文件
+/tests/output/
+/tests/coverage/
+*.log
+*.tmp
+*.temp
+
+# 示例文件（可选）
+multi-consumer-example.php
+multi-consumer-test.php
+task-queue.php
+example.php
+
+# 文档构建
+/docs/build/
+/docs/api/
+
+# 环境配置
+.env
+.env.local
+.env.production
+
+# 缓存
+.cache/
+*.cache
