@@ -1,0 +1,31 @@
+{
+    "name": "tinywan/redis-stream",
+    "description": "A lightweight queue based on Redis Stream",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Tinywan\\RedisStream\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Tinywan",
+            "email": "756684177@qq.com"
+        }
+    ],
+    "require": {
+        "php": "^7.4",
+        "ext-redis": "*",
+        "ext-json": "*",
+        "psr/log": "^1.0",
+        "monolog/monolog": "^2.10"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tinywan\\RedisStream\\Tests\\": "tests/"
+        }
+    }
+}
