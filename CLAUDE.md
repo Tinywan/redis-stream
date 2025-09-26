@@ -76,14 +76,19 @@ $queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
 - PHP 7.4+
 - Redis 扩展
 - Composer
-- Monolog（可选，用于高级日志记录）
+- Monolog（用于日志记录）
 
 ### 日志系统
 
-队列内置了 SimpleLogger 类提供基础的日志记录功能，支持以下日志级别：
+队列基于 Monolog 实现日志记录功能，默认使用控制台日志记录器。支持以下日志级别：
 - emergency, alert, critical, error, warning, notice, info, debug
 
-如果需要更高级的日志功能，可以使用 MonologFactory 创建 Monolog 日志记录器。
+通过 MonologFactory 可以创建不同类型的日志记录器：
+- `createConsoleLogger()`: 控制台日志记录器
+- `createFileLogger()`: 文件日志记录器
+- `createDevelopmentLogger()`: 开发环境日志记录器
+- `createProductionLogger()`: 生产环境日志记录器
+- `createLogger()`: 根据环境自动创建日志记录器
 
 ## 常用开发任务
 
@@ -124,8 +129,8 @@ php monolog-example.php
 $redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
 $queueConfig = ['stream_name' => 'my_queue', 'consumer_group' => 'my_group'];
 
-// 使用内置 SimpleLogger
-$logger = new Tinywan\RedisStream\SimpleLogger('my-app');
+// 使用 MonologFactory 创建日志记录器
+$logger = Tinywan\RedisStream\MonologFactory::createConsoleLogger('my-app');
 $queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
 $messageId = $queue->send('message data', ['metadata' => 'value']);
 ```
@@ -157,22 +162,26 @@ $message = $queue->consume(function($message) {
 
 ### 日志配置
 
-使用 MonologFactory 创建不同环境的日志记录器：
+使用 MonologFactory 创建统一的日志记录器：
 
 ```php
 use Tinywan\RedisStream\MonologFactory;
 
-// 开发环境日志
-$devLogger = MonologFactory::createDevelopmentLogger('my-app');
+// 创建日志记录器（可配置文件日志和调试模式）
+$logger = MonologFactory::createLogger(
+    'my-app',           // 日志通道名称
+    $enableFileLogging, // 是否启用文件日志（默认false）
+    $enableDebug        // 是否启用调试模式（默认false）
+);
 
-// 生产环境日志
-$prodLogger = MonologFactory::createProductionLogger('my-app');
+// 示例：仅控制台日志
+$consoleLogger = MonologFactory::createLogger('my-app');
 
-// 控制台日志
-$consoleLogger = MonologFactory::createConsoleLogger('my-app');
+// 示例：文件日志 + 控制台
+$fileLogger = MonologFactory::createLogger('my-app', true, false);
 
-// 自动根据环境配置
-$autoLogger = MonologFactory::createLogger('my-app');
+// 示例：文件日志 + 调试模式
+$debugLogger = MonologFactory::createLogger('my-app', true, true);
 ```
 
 ### 错误处理
@@ -180,7 +189,7 @@ $autoLogger = MonologFactory::createLogger('my-app');
 所有操作在失败时抛出 `RedisStreamException`。库自动：
 - 处理 Redis 连接失败
 - 从消费者组创建冲突中恢复
-- 使用内置 SimpleLogger 记录错误
+- 使用 Monolog 记录错误
 - 为失败处理实现重试逻辑
 
 ### 性能优化

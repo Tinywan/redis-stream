@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Tinywan\RedisStream;
 
 use Tinywan\RedisStream\Exception\RedisStreamException;
-use Tinywan\RedisStream\MonologFactory;
 use Tinywan\RedisStream\RedisConnectionPool;
-use Tinywan\RedisStream\SimpleLogger;
+use Monolog\Logger;
 use Redis;
 use Throwable;
 
@@ -28,8 +27,8 @@ class RedisStreamQueue
     /** @var Redis Redis 客户端实例 */
     private Redis $redis;
 
-    /** @var SimpleLogger Simple logger instance */
-    protected $logger;
+    /** @var Logger Monolog logger instance */
+    protected Logger $logger;
     
     /** @var array Redis 配置数组 */
     protected array $redisConfig;
@@ -51,14 +50,14 @@ class RedisStreamQueue
      * 
      * @param array $redisConfig Redis 连接配置
      * @param array $queueConfig 队列配置
-     * @param SimpleLogger|null $logger Logger instance, defaults to SimpleLogger
+     * @param Logger|null $logger Monolog logger instance, defaults to console logger
      * @return static RedisStreamQueue 实例
      * @throws RedisStreamException 当连接失败时抛出异常
      */
     public static function getInstance(
         array $redisConfig = [],
         array $queueConfig = [],
-        ?SimpleLogger $logger = null
+        ?Logger $logger = null
     ): self {
         // 生成配置的唯一标识符
         $instanceKey = self::generateInstanceKey($redisConfig, $queueConfig);
@@ -76,13 +75,13 @@ class RedisStreamQueue
      * 
      * @param array $redisConfig Redis 连接配置
      * @param array $queueConfig 队列配置
-     * @param SimpleLogger|null $logger Logger instance, defaults to SimpleLogger
+     * @param Logger|null $logger Monolog logger instance, defaults to console logger
      * @throws RedisStreamException 当 Redis 连接失败时抛出异常
      */
     private function __construct(
         array $redisConfig = [],
         array $queueConfig = [],
-        ?SimpleLogger $logger = null
+        ?Logger $logger = null
     ) {
         // 合并默认配置
         $this->redisConfig = array_merge([
@@ -105,7 +104,7 @@ class RedisStreamQueue
         $this->streamName = $this->queueConfig['stream_name'];
         $this->consumerGroup = $this->queueConfig['consumer_group'];
         $this->consumerName = $this->queueConfig['consumer_name'];
-        $this->logger = $logger ?? new SimpleLogger();
+        $this->logger = $logger ?? MonologFactory::createConsoleLogger();
         
         // 初始化连接池
         $this->connectionPool = RedisConnectionPool::getInstance();
@@ -441,9 +440,9 @@ class RedisStreamQueue
     /**
      * 获取日志记录器
      * 
-     * @return SimpleLogger Logger instance
+     * @return Logger Monolog logger instance
      */
-    public function getLogger(): SimpleLogger
+    public function getLogger(): Logger
     {
         return $this->logger;
     }

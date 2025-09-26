@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use Tinywan\RedisStream\MessageHandlerInterface;
-use Tinywan\RedisStream\SimpleLogger;
+use Monolog\Logger;
 
 /**
  * 邮件消息处理器
@@ -14,15 +14,15 @@ use Tinywan\RedisStream\SimpleLogger;
  */
 class EmailMessageHandler implements MessageHandlerInterface
 {
-    private $logger;
-    private $templates = [
+    private Logger $logger;
+    private array $templates = [
         'welcome' => 'Welcome to our service!',
         'reset_password' => 'Reset your password link: {link}',
         'notification' => 'You have a new notification: {message}',
         'newsletter' => 'Monthly newsletter: {content}'
     ];
 
-    public function __construct(SimpleLogger $logger)
+    public function __construct(Logger $logger)
     {
         $this->logger = $logger;
     }
@@ -111,9 +111,9 @@ class EmailMessageHandler implements MessageHandlerInterface
  */
 class ImageProcessHandler implements MessageHandlerInterface
 {
-    private $logger;
+    private Logger $logger;
 
-    public function __construct(SimpleLogger $logger)
+    public function __construct(Logger $logger)
     {
         $this->logger = $logger;
     }
@@ -183,9 +183,9 @@ class ImageProcessHandler implements MessageHandlerInterface
  */
 class LogMessageHandler implements MessageHandlerInterface
 {
-    private $logger;
+    private Logger $logger;
 
-    public function __construct(SimpleLogger $logger)
+    public function __construct(Logger $logger)
     {
         $this->logger = $logger;
     }
@@ -245,9 +245,9 @@ class LogMessageHandler implements MessageHandlerInterface
 class MessageHandlerRouter implements MessageHandlerInterface
 {
     private $handlers = [];
-    private $logger;
+    private Logger $logger;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(Logger $logger)
     {
         $this->logger = $logger;
         $this->registerDefaultHandlers();

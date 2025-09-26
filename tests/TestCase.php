@@ -6,7 +6,7 @@ namespace Tinywan\RedisStream\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Tinywan\RedisStream\RedisStreamQueue;
-use Tinywan\RedisStream\SimpleLogger;
+use Tinywan\RedisStream\MonologFactory;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -34,7 +34,7 @@ abstract class TestCase extends BaseTestCase
         ];
         
         // 创建测试队列实例
-        $this->queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, new SimpleLogger());
+        $this->queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, MonologFactory::createConsoleLogger());
     }
     
     protected function tearDown(): void

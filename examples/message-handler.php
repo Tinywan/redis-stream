@@ -20,6 +20,10 @@ $redisConfig = [
     'timeout' => 5,
 ];
 
+// 日志配置
+$enableFileLogging = getenv('REDIS_STREAM_FILE_LOG') === 'true' || in_array('--file-log', $argv);
+$enableDebug = getenv('REDIS_STREAM_DEBUG') === 'true' || in_array('--debug', $argv);
+
 // 队列配置
 $queueConfig = [
     'stream_name' => 'handler_queue',
@@ -30,14 +34,23 @@ $queueConfig = [
     'retry_delay' => 1000,
 ];
 
-$logger = MonologFactory::createLogger('message-handler', 'development');
+$logger = MonologFactory::createLogger('message-handler', $enableFileLogging, $enableDebug);
 $taskQueue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
 
 // 显示配置信息
 echo "=== MessageHandlerInterface 示例 ===\n";
 echo "Redis配置: " . json_encode($taskQueue->getRedisConfig(), JSON_PRETTY_PRINT) . "\n";
 echo "队列配置: " . json_encode($taskQueue->getQueueConfig(), JSON_PRETTY_PRINT) . "\n";
+echo "日志配置: 文件日志=" . ($enableFileLogging ? '启用' : '禁用') . ", 调试模式=" . ($enableDebug ? '启用' : '禁用') . "\n";
 echo "================================\n\n";
+
+// 记录启动日志
+$logger->info('MessageHandlerInterface example started', [
+    'pid' => getmypid(),
+    'stream_name' => $taskQueue->getStreamName(),
+    'consumer_group' => $taskQueue->getConsumerGroup(),
+    'consumer_name' => $taskQueue->getConsumerName()
+]);
 
 // 创建测试消息
 function createTestMessage(Producer $producer, string $type, array $data): void
@@ -51,13 +64,44 @@ function createTestMessage(Producer $producer, string $type, array $data): void
         'priority' => $data['priority'] ?? 'normal'
     ];
     
-    $producer->send(json_encode($messageData), [
-        'message_type' => $type,
-        'message_id' => $messageId,
-        'priority' => $data['priority'] ?? 'normal'
-    ]);
+    $startTime = microtime(true);
     
-    echo "✅ Message created: $messageId ($type)\n";
+    try {
+        $redisMessageId = $producer->send(json_encode($messageData), [
+            'message_type' => $type,
+            'message_id' => $messageId,
+            'priority' => $data['priority'] ?? 'normal'
+        ]);
+        
+        $endTime = microtime(true);
+        $duration = round(($endTime - $startTime) * 1000, 2);
+        
+        // 记录消息创建日志
+        $producer->getQueue()->getLogger()->info('Test message created successfully', [
+            'message_id' => $messageId,
+            'message_type' => $type,
+            'redis_message_id' => $redisMessageId,
+            'priority' => $data['priority'] ?? 'normal',
+            'duration_ms' => $duration,
+            'data_size' => strlen(json_encode($messageData))
+        ]);
+        
+        echo "✅ Message created: $messageId ($type) - Duration: {$duration}ms\n";
+        
+    } catch (Throwable $e) {
+        $endTime = microtime(true);
+        $duration = round(($endTime - $startTime) * 1000, 2);
+        
+        // 记录错误日志
+        $producer->getQueue()->getLogger()->error('Failed to create test message', [
+            'message_id' => $messageId,
+            'message_type' => $type,
+            'error' => $e->getMessage(),
+            'duration_ms' => $duration
+        ]);
+        
+        echo "❌ Failed to create message: $messageId - Error: " . $e->getMessage() . "\n";
+    }
 }
 
 // 示例用法
@@ -65,6 +109,7 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
     echo "🚀 Creating test messages for MessageHandlerInterface...\n\n";
     
     $producer = new Producer($taskQueue);
+    $totalMessages = 0;
     
     // 创建邮件消息
     createTestMessage($producer, 'email', [
@@ -73,6 +118,7 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
         'template' => 'welcome',
         'priority' => 'high'
     ]);
+    $totalMessages++;
     
     // 创建图片处理消息
     createTestMessage($producer, 'image', [
@@ -83,6 +129,7 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
         'format' => 'jpg',
         'priority' => 'normal'
     ]);
+    $totalMessages++;
     
     // 创建日志消息
     createTestMessage($producer, 'log', [
@@ -91,6 +138,7 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
         'context' => ['user_id' => 123, 'ip' => '192.168.1.1'],
         'priority' => 'low'
     ]);
+    $totalMessages++;
     
     // 批量创建邮件消息
     echo "📧 Creating batch email messages...\n";
@@ -102,6 +150,7 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
             'content' => "This is newsletter number {$i}",
             'priority' => 'low'
         ]);
+        $totalMessages++;
     }
     
     // 批量创建图片处理消息
@@ -115,6 +164,7 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
             'format' => 'png',
             'priority' => 'medium'
         ]);
+        $totalMessages++;
     }
     
     // 批量创建日志消息
@@ -129,12 +179,22 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
             'context' => ['test_id' => $i, 'timestamp' => time()],
             'priority' => 'low'
         ]);
+        $totalMessages++;
     }
+    
+    // 记录批量创建完成日志
+    $logger->info('Batch messages creation completed', [
+        'total_messages' => $totalMessages,
+        'stream_length' => $taskQueue->getStreamLength(),
+        'pending_count' => $taskQueue->getPendingCount(),
+        'message_types' => ['email' => 4, 'image' => 3, 'log' => 6]
+    ]);
     
     echo "\n✅ All messages created successfully!\n";
     echo "📊 Queue Status:\n";
     echo "   Stream Length: " . $taskQueue->getStreamLength() . "\n";
     echo "   Pending Count: " . $taskQueue->getPendingCount() . "\n";
+    echo "   Total Messages: {$totalMessages}\n";
     
 } elseif (isset($argv[1]) && $argv[1] === 'consumer') {
     echo "🚀 Starting consumer with MessageHandlerInterface...\n\n";
@@ -147,6 +207,16 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
     // 设置内存限制
     $consumer->setMemoryLimit(256 * 1024 * 1024);
     
+    // 记录消费者启动日志
+    $logger->info('MessageHandlerInterface consumer started', [
+        'pid' => getmypid(),
+        'stream_name' => $taskQueue->getStreamName(),
+        'consumer_group' => $taskQueue->getConsumerGroup(),
+        'consumer_name' => $taskQueue->getConsumerName(),
+        'memory_limit' => '256MB',
+        'available_handlers' => ['email', 'image', 'log']
+    ]);
+    
     echo "📋 Message Handler Router Configuration:\n";
     echo "   Available handlers: " . implode(', ', ['email', 'image', 'log']) . "\n";
     echo "   Stream: " . $taskQueue->getStreamName() . "\n";
@@ -154,7 +224,35 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
     echo "   Consumer: " . $taskQueue->getConsumerName() . "\n\n";
     
     // 使用消息处理器路由
-    $consumer->run([$handlerRouter, 'handle']);
+    $processedCount = 0;
+    $consumer->run(function($message) use ($handlerRouter, $logger, &$processedCount) {
+        $processedCount++;
+        
+        // 记录消息处理开始
+        $logger->info('Processing message with handler', [
+            'message_id' => $message['id'],
+            'attempts' => $message['attempts'],
+            'processed_count' => $processedCount
+        ]);
+        
+        $result = $handlerRouter->handle($message['message']);
+        
+        // 记录处理结果
+        $logger->info('Message processing completed', [
+            'message_id' => $message['id'],
+            'result' => $result ? 'success' : 'failure',
+            'attempts' => $message['attempts']
+        ]);
+        
+        return $result;
+    });
+    
+    // 记录消费者停止日志
+    $logger->info('MessageHandlerInterface consumer stopped', [
+        'total_processed' => $processedCount,
+        'final_stream_length' => $taskQueue->getStreamLength(),
+        'final_pending_count' => $taskQueue->getPendingCount()
+    ]);
     
 } elseif (isset($argv[1]) && $argv[1] === 'status') {
     echo "📊 Queue Status:\n";
@@ -164,9 +262,20 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
     echo "   Pending Count: " . $taskQueue->getPendingCount() . "\n";
     echo "   Consumer: " . $taskQueue->getConsumerName() . "\n";
     
+    // 记录状态查询日志
+    $logger->info('Queue status queried', [
+        'stream_name' => $taskQueue->getStreamName(),
+        'stream_length' => $taskQueue->getStreamLength(),
+        'pending_count' => $taskQueue->getPendingCount(),
+        'consumer_name' => $taskQueue->getConsumerName()
+    ]);
+    
 } elseif (isset($argv[1]) && $argv[1] === 'demo') {
     echo "🎯 MessageHandlerInterface Demo\n";
     echo "================================\n\n";
+    
+    // 记录演示开始日志
+    $logger->info('MessageHandlerInterface demo started');
     
     echo "📧 Email Handler Demo:\n";
     $emailHandler = new \App\MessageHandler\EmailMessageHandler($logger);
@@ -210,12 +319,24 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
     $logResult = $logHandler->handle($logMessage);
     echo "   Result: " . ($logResult ? '✅ Success' : '❌ Failed') . "\n\n";
     
+    // 记录演示结果日志
+    $logger->info('MessageHandlerInterface demo completed', [
+        'email_handler_result' => $emailResult,
+        'image_handler_result' => $imageResult,
+        'log_handler_result' => $logResult
+    ]);
+    
 } else {
     echo "📖 MessageHandlerInterface 示例用法:\n";
-    echo "  php message-handler.php producer  # 创建测试消息\n";
-    echo "  php message-handler.php consumer  # 使用自定义处理器处理消息\n";
-    echo "  php message-handler.php demo      # 演示各个处理器的功能\n";
-    echo "  php message-handler.php status    # 查看队列状态\n";
+    echo "  php message-handler.php producer        # 创建测试消息\n";
+    echo "  php message-handler.php consumer        # 使用自定义处理器处理消息\n";
+    echo "  php message-handler.php demo            # 演示各个处理器的功能\n";
+    echo "  php message-handler.php status          # 查看队列状态\n";
+    echo "\n🔧 日志配置选项:\n";
+    echo "  --file-log                     # 启用文件日志记录\n";
+    echo "  --debug                        # 启用调试模式\n";
+    echo "  REDIS_STREAM_FILE_LOG=true     # 环境变量启用文件日志\n";
+    echo "  REDIS_STREAM_DEBUG=true        # 环境变量启用调试模式\n";
     echo "\n💡 示例说明:\n";
     echo "  1. producer: 创建不同类型的测试消息\n";
     echo "  2. consumer: 使用 MessageHandlerInterface 实现处理消息\n";
