@@ -1,6 +1,7 @@
 # 依赖
 /vendor/
 composer.lock
+.phpunit.result.cache
 
 # IDE 和编辑器
 .idea/
