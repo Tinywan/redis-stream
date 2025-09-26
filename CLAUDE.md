@@ -76,7 +76,14 @@ $queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
 - PHP 7.4+
 - Redis 扩展
 - Composer
-- Monolog（可选，用于日志记录）
+- Monolog（可选，用于高级日志记录）
+
+### 日志系统
+
+队列内置了 SimpleLogger 类提供基础的日志记录功能，支持以下日志级别：
+- emergency, alert, critical, error, warning, notice, info, debug
+
+如果需要更高级的日志功能，可以使用 MonologFactory 创建 Monolog 日志记录器。
 
 ## 常用开发任务
 
@@ -117,6 +124,8 @@ php monolog-example.php
 $redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
 $queueConfig = ['stream_name' => 'my_queue', 'consumer_group' => 'my_group'];
 
+// 使用内置 SimpleLogger
+$logger = new Tinywan\RedisStream\SimpleLogger('my-app');
 $queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
 $messageId = $queue->send('message data', ['metadata' => 'value']);
 ```
@@ -171,7 +180,7 @@ $autoLogger = MonologFactory::createLogger('my-app');
 所有操作在失败时抛出 `RedisStreamException`。库自动：
 - 处理 Redis 连接失败
 - 从消费者组创建冲突中恢复
-- 使用 PSR-3 记录器记录错误
+- 使用内置 SimpleLogger 记录错误
 - 为失败处理实现重试逻辑
 
 ### 性能优化

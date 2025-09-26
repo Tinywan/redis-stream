@@ -10,7 +10,6 @@ use Monolog\Handler\RotatingFileHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Processor\IntrospectionProcessor;
 use Monolog\Processor\WebProcessor;
-use Psr\Log\LogLevel;
 
 class MonologFactory
 {

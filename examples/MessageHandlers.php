@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use Tinywan\RedisStream\MessageHandlerInterface;
-use Psr\Log\LoggerInterface;
+use Tinywan\RedisStream\SimpleLogger;
 
 /**
  * 邮件消息处理器
@@ -22,7 +22,7 @@ class EmailMessageHandler implements MessageHandlerInterface
         'newsletter' => 'Monthly newsletter: {content}'
     ];
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(SimpleLogger $logger)
     {
         $this->logger = $logger;
     }
@@ -113,7 +113,7 @@ class ImageProcessHandler implements MessageHandlerInterface
 {
     private $logger;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(SimpleLogger $logger)
     {
         $this->logger = $logger;
     }
@@ -185,7 +185,7 @@ class LogMessageHandler implements MessageHandlerInterface
 {
     private $logger;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(SimpleLogger $logger)
     {
         $this->logger = $logger;
     }

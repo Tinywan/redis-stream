@@ -6,7 +6,7 @@ namespace Tinywan\RedisStream\Tests\Unit;
 
 use Tinywan\RedisStream\Tests\TestCase;
 use Tinywan\RedisStream\Exception\RedisStreamException;
-use Psr\Log\NullLogger;
+use Tinywan\RedisStream\SimpleLogger;
 
 class RedisStreamQueueTest extends TestCase
 {
@@ -26,7 +26,7 @@ class RedisStreamQueueTest extends TestCase
             'retry_attempts' => 5,
         ];
         
-        $queue = \Tinywan\RedisStream\RedisStreamQueue::getInstance($redisConfig, $queueConfig, new NullLogger());
+        $queue = \Tinywan\RedisStream\RedisStreamQueue::getInstance($redisConfig, $queueConfig, new SimpleLogger());
         
         $this->assertEquals('test_separated', $queue->getStreamName());
         $this->assertEquals('test_group_separated', $queue->getConsumerGroup());
@@ -172,7 +172,7 @@ class RedisStreamQueueTest extends TestCase
     
     public function testDefaultConfigValues(): void
     {
-        $queue = \Tinywan\RedisStream\RedisStreamQueue::getInstance([], [], new NullLogger());
+        $queue = \Tinywan\RedisStream\RedisStreamQueue::getInstance([], [], new SimpleLogger());
         
         $redisConfig = $queue->getRedisConfig();
         $this->assertEquals('127.0.0.1', $redisConfig['host']);
@@ -204,7 +204,7 @@ class RedisStreamQueueTest extends TestCase
         $this->assertIsString($this->queue->getStreamName());
         $this->assertIsString($this->queue->getConsumerGroup());
         $this->assertIsString($this->queue->getConsumerName());
-        $this->assertInstanceOf(\Psr\Log\LoggerInterface::class, $this->queue->getLogger());
+        $this->assertInstanceOf(\Tinywan\RedisStream\SimpleLogger::class, $this->queue->getLogger());
         $this->assertIsArray($this->queue->getConfig());
     }
     
@@ -219,7 +219,7 @@ class RedisStreamQueueTest extends TestCase
                 'timeout' => 1,
             ],
             [],
-            new NullLogger()
+            new SimpleLogger()
         );
     }
 }
