@@ -270,11 +270,10 @@
         }
 
         .code-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            background: #1e293b;
+            border: 1px solid #334155;
             border-radius: 16px;
             overflow: hidden;
-            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
 
@@ -298,15 +297,15 @@
             font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
             font-size: 1rem;
             line-height: 1.8;
-            color: var(--text-primary);
+            color: #e2e8f0;
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
         }
 
         .code-block {
-            background: var(--code-bg);
-            border: 1px solid var(--border-color);
+            background: #1e293b;
+            border: 1px solid #334155;
             border-radius: 12px;
             padding: 2rem;
             margin: 2rem 0;
@@ -317,7 +316,7 @@
         }
 
         .typing-code {
-            color: var(--text-primary);
+            color: #e2e8f0;
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
@@ -325,19 +324,19 @@
             font-size: 1rem;
         }
 
-        /* PHP 语法高亮 */
-        .php-tag { color: #569cd6; font-weight: 600; }
-        .php-comment { color: #6a9955; font-style: italic; }
-        .php-variable { color: #9cdcfe; }
-        .php-string { color: #ce9178; }
-        .php-number { color: #b5cea8; }
-        .php-keyword { color: #569cd6; font-weight: 600; }
-        .php-class { color: #4ec9b0; }
-        .php-method { color: #dcdcaa; }
-        .php-function { color: #dcdcaa; }
-        .php-bracket { color: #d4d4d4; }
-        .php-operator { color: #d4d4d4; }
-        .php-echo { color: #569cd6; font-weight: 600; }
+        /* PHP 语法高亮 - 深色背景适配 */
+        .php-tag { color: #c792ea; font-weight: 600; }
+        .php-comment { color: #636f83; font-style: italic; }
+        .php-variable { color: #82aaff; }
+        .php-string { color: #c3e88d; }
+        .php-number { color: #f78c6c; }
+        .php-keyword { color: #c792ea; font-weight: 600; }
+        .php-class { color: #ffcb6b; }
+        .php-method { color: #82aaff; }
+        .php-function { color: #82aaff; }
+        .php-bracket { color: #e2e8f0; }
+        .php-operator { color: #89ddff; }
+        .php-echo { color: #c792ea; font-weight: 600; }
 
         /* 打字机效果 */
         .typing-effect {
