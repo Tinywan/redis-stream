@@ -160,10 +160,10 @@
         .subtitle-wrapper {
             display: inline-block;
             position: relative;
-            margin-bottom: 3rem;
+            margin-bottom: 4rem;
             transform-style: preserve-3d;
             perspective: 1000px;
-            animation: subtitleFloat 4s ease-in-out infinite;
+            animation: subtitleFloat 6s ease-in-out infinite;
         }
 
         @keyframes subtitleFloat {
@@ -182,50 +182,44 @@
         }
 
         .hero .subtitle {
-            font-size: 1.5rem;
-            font-weight: 600;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff);
-            background-size: 400% 400%;
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--redis-red), var(--performance-green));
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: plasmaShift 6s ease-in-out infinite, fadeInUp 0.8s ease-out 0.2s both;
-            text-shadow: 0 0 30px rgba(255, 107, 107, 0.5),
-                         0 0 60px rgba(78, 205, 196, 0.3),
-                         0 0 90px rgba(69, 183, 209, 0.2);
+            animation: gradientShift 8s ease-in-out infinite, fadeInUp 0.8s ease-out 0.2s both;
+            text-shadow: 0 0 20px rgba(220, 56, 45, 0.3);
             position: relative;
             z-index: 2;
             margin: 0;
+            letter-spacing: 2px;
+            line-height: 1.2;
         }
 
         .subtitle-wrapper::before {
             content: '';
             position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff);
-            background-size: 400% 400%;
-            border-radius: 20px;
-            filter: blur(20px);
-            opacity: 0.6;
-            animation: plasmaShift 8s ease-in-out infinite reverse;
+            top: -50px;
+            left: -50px;
+            right: -50px;
+            bottom: -50px;
+            background: linear-gradient(135deg, var(--redis-red), var(--performance-green));
+            background-size: 300% 300%;
+            border-radius: 30px;
+            filter: blur(40px);
+            opacity: 0.4;
+            animation: gradientShift 10s ease-in-out infinite reverse;
             z-index: 1;
         }
 
-        @keyframes plasmaShift {
+        @keyframes gradientShift {
             0% {
                 background-position: 0% 50%;
             }
-            25% {
-                background-position: 100% 50%;
-            }
             50% {
-                background-position: 100% 100%;
-            }
-            75% {
-                background-position: 0% 100%;
+                background-position: 100% 50%;
             }
             100% {
                 background-position: 0% 50%;
@@ -235,13 +229,13 @@
         .subtitle-wrapper::after {
             content: '';
             position: absolute;
-            top: -5px;
-            left: -5px;
-            right: -5px;
-            bottom: -5px;
-            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
-            border-radius: 15px;
-            animation: shimmer 3s ease-in-out infinite;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+            border-radius: 25px;
+            animation: shimmer 4s ease-in-out infinite;
             z-index: 3;
         }
 
