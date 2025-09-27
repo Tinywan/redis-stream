@@ -318,28 +318,68 @@ class RedisStreamQueue
     {
         try {
             if ($retry) {
-                // 获取待处理消息信息
-                $pending = $this->redis->xPending($this->streamName, $this->consumerGroup);
-                // 获取指定消息
-                $message = $this->redis->xRange($this->streamName, $messageId, $messageId);
+                // 首先检查消息是否在 pending 状态
+                $pendingInfo = $this->redis->xPending($this->streamName, $this->consumerGroup, '-', '+', 1, $messageId);
                 
-                if (isset($message[$messageId])) {
-                    $data = $message[$messageId];
-                    $data['attempts'] = isset($data['attempts']) ? (int)$data['attempts'] + 1 : 1;
+                if (!empty($pendingInfo)) {
+                    // 消息在 pending 状态，需要先确认它确实存在
+                    $pendingMessage = $pendingInfo[0];
+                    if ($pendingMessage[0] === $messageId) {
+                        // 从 pending 状态中移除消息并重新加入队列
+                        $this->redis->xAck($this->streamName, $this->consumerGroup, [$messageId]);
+                        
+                        // 获取消息内容（如果消息还在 stream 中）
+                        $message = $this->redis->xRange($this->streamName, $messageId, $messageId);
+                        
+                        if (isset($message[$messageId])) {
+                            $data = $message[$messageId];
+                            $data['attempts'] = isset($data['attempts']) ? (int)$data['attempts'] + 1 : 1;
+                            
+                            // 如果重试次数未超过限制，重新加入队列
+                            if ($data['attempts'] <= $this->queueConfig['retry_attempts']) {
+                                // 删除原消息
+                                $this->redis->xDel($this->streamName, [$messageId]);
+                                // 重新添加到队列
+                                $this->redis->xAdd($this->streamName, '*', $data);
+                                
+                                $this->logger->info('Pending message retry enqueued', [
+                                    'message_id' => $messageId,
+                                    'attempts' => $data['attempts'],
+                                    'pending_time' => $pendingMessage[4] // 最后传递时间
+                                ]);
+                                
+                                return true;
+                            }
+                        } else {
+                            // 消息已不在 stream 中，但仍在 pending 中
+                            $this->logger->warning('Pending message not found in stream', [
+                                'message_id' => $messageId,
+                                'pending_info' => $pendingMessage
+                            ]);
+                        }
+                    }
+                } else {
+                    // 消息不在 pending 状态，直接处理
+                    $message = $this->redis->xRange($this->streamName, $messageId, $messageId);
                     
-                    // 如果重试次数未超过限制，重新加入队列
-                    if ($data['attempts'] <= $this->queueConfig['retry_attempts']) {
-                        // 删除原消息
-                        $this->redis->xDel($this->streamName, [$messageId]);
-                        // 重新添加到队列
-                        $this->redis->xAdd($this->streamName, '*', $data);
+                    if (isset($message[$messageId])) {
+                        $data = $message[$messageId];
+                        $data['attempts'] = isset($data['attempts']) ? (int)$data['attempts'] + 1 : 1;
                         
-                        $this->logger->info('Message retry enqueued', [
-                            'message_id' => $messageId,
-                            'attempts' => $data['attempts']
-                        ]);
-                        
-                        return true;
+                        // 如果重试次数未超过限制，重新加入队列
+                        if ($data['attempts'] <= $this->queueConfig['retry_attempts']) {
+                            // 删除原消息
+                            $this->redis->xDel($this->streamName, [$messageId]);
+                            // 重新添加到队列
+                            $this->redis->xAdd($this->streamName, '*', $data);
+                            
+                            $this->logger->info('Message retry enqueued', [
+                                'message_id' => $messageId,
+                                'attempts' => $data['attempts']
+                            ]);
+                            
+                            return true;
+                        }
                     }
                 }
             }
@@ -567,12 +607,13 @@ class RedisStreamQueue
     private function __clone()
     {
     }
-    
+
     /**
      * 防止反序列化单例
+     * @throws RedisStreamException
      */
     public function __wakeup()
     {
-        throw new RedisStreamException('Cannot unserialize singleton');
+        throw new RedisStreamException('Cannot serialize singleton');
     }
 }
