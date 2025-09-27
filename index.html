@@ -268,8 +268,8 @@
 
         .code-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
-            gap: 3rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
             margin-top: 2rem;
         }
 
@@ -481,6 +481,20 @@
         }
 
         /* Responsive */
+        @media (max-width: 1200px) {
+            .code-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+        
+        @media (min-width: 1201px) {
+            .code-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+        }
+        
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2.5rem;
@@ -492,6 +506,7 @@
             
             .code-grid {
                 grid-template-columns: 1fr;
+                gap: 1.5rem;
             }
             
             .nav-links {
@@ -500,6 +515,16 @@
             
             .container {
                 padding: 0 1rem;
+            }
+            
+            .code-card-content {
+                padding: 2rem;
+                font-size: 1.1rem;
+            }
+            
+            .typing-code {
+                font-size: 1.1rem;
+                line-height: 1.8;
             }
         }
     </style>
