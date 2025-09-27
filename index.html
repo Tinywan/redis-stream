@@ -5,60 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redis Stream Queue - 基于 Redis Stream 的高性能轻量级消息队列</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         :root {
-            --primary-color: #0084ff;
-            --primary-dark: #0066cc;
-            --secondary-color: #f8f9fa;
-            --text-primary: #1a202c;
-            --text-secondary: #4a5568;
-            --border-color: #e2e8f0;
-            --code-bg: #f6f8fa;
-            --code-text: #24292e;
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --accent-color: #10b981;
+            --dark-bg: #e2e8f0;
+            --card-bg: #ffffff;
+            --border-color: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
             --success-color: #10b981;
-            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --code-bg: #f8fafc;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
             line-height: 1.6;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
             color: var(--text-primary);
-            background: #ffffff;
+            overflow-x: hidden;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 2rem;
         }
 
-        /* Hero Section - Clean & Minimal */
-        .hero {
-            padding: 120px 0;
-            text-align: center;
-            background: #ffffff;
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 8rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 102, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
+            font-size: 4rem;
+            font-weight: 800;
             margin-bottom: 1.5rem;
-            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 0.8s ease-out;
         }
 
         .hero .subtitle {
             font-size: 1.5rem;
             color: var(--text-secondary);
             margin-bottom: 3rem;
-            font-weight: 400;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .hero-buttons {
@@ -66,13 +140,14 @@
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 14px 28px;
+            padding: 1rem 2rem;
             border: none;
             border-radius: 8px;
             text-decoration: none;
@@ -80,171 +155,272 @@
             font-size: 1rem;
             transition: all 0.3s ease;
             cursor: pointer;
-            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn-primary {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
         }
 
         .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.4);
         }
 
         .btn-secondary {
-            background: white;
+            background: var(--card-bg);
             color: var(--text-primary);
-            border: 2px solid var(--border-color);
+            border: 1px solid var(--border-color);
         }
 
         .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
             border-color: var(--primary-color);
-            color: var(--primary-color);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
 
-        /* Section Layout */
-        .section {
-            padding: 80px 0;
+        /* Install Section */
+        .install {
+            padding: 4rem 0;
+            background: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid var(--border-color);
         }
 
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 700;
+        .install-content {
             text-align: center;
-            margin-bottom: 3rem;
-            color: var(--text-primary);
-        }
-
-        /* Quick Install */
-        .quick-install {
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .install-container {
             max-width: 800px;
             margin: 0 auto;
-            text-align: center;
+        }
+
+        .install h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .code-block {
-            background: var(--code-bg);
-            color: var(--code-text);
-            padding: 2rem;
-            border-radius: 8px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-size: 1.2rem;
-            line-height: 1.5;
-            position: relative;
-            margin: 2rem 0;
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 1.2rem;
+            backdrop-filter: blur(10px);
         }
 
-        .copy-button {
+        .copy-btn {
             position: absolute;
             top: 1rem;
             right: 1rem;
-            background: white;
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-        }
-
-        .copy-button:hover {
             background: var(--primary-color);
             color: white;
-            border-color: var(--primary-color);
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .copy-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
 
         /* Quick Start */
         .quick-start {
-            background: white;
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .code-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
             gap: 2rem;
-            margin-top: 3rem;
         }
 
         .code-card {
-            background: white;
-            border-radius: 8px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
             transition: all 0.3s ease;
         }
 
         .code-card:hover {
-            box-shadow: var(--card-hover-shadow);
-            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.2);
         }
 
         .code-card-header {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 1rem 1.5rem;
+            padding: 1.5rem;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            text-align: center;
         }
 
         .code-card-content {
             padding: 2rem;
-            background: var(--code-bg);
-            color: var(--code-text);
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-size: 0.9rem;
-            line-height: 1.7;
-            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow: hidden;
         }
 
-        /* Features - Clean Cards */
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 1.2rem;
+            overflow: hidden;
+        }
+
+        .typing-code {
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow: hidden;
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        /* PHP 语法高亮 - 深色背景适配 */
+        .php-tag { color: #c792ea; font-weight: 600; }
+        .php-comment { color: #636f83; font-style: italic; }
+        .php-variable { color: #82aaff; }
+        .php-string { color: #c3e88d; }
+        .php-number { color: #f78c6c; }
+        .php-keyword { color: #c792ea; font-weight: 600; }
+        .php-class { color: #ffcb6b; }
+        .php-method { color: #82aaff; }
+        .php-function { color: #82aaff; }
+        .php-bracket { color: #e2e8f0; }
+        .php-operator { color: #89ddff; }
+        .php-echo { color: #c792ea; font-weight: 600; }
+
+        /* 打字机效果 */
+        .typing-effect {
+            overflow: hidden;
+            white-space: pre;
+            animation: typing 3s steps(40, end);
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        .cursor {
+            display: inline-block;
+            background-color: #d4d4d4;
+            margin-left: 2px;
+            width: 2px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Features */
         .features {
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border-color);
+            padding: 4rem 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-top: 1px solid var(--border-color);
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
-            margin-top: 3rem;
         }
 
         .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            text-align: left;
-            transition: all 0.3s ease;
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
-            height: 100%;
+            border-radius: 16px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
         }
 
         .feature-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-4px);
             border-color: var(--primary-color);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.2);
         }
 
         .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
             display: block;
         }
 
         .feature-title {
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 1rem;
             color: var(--text-primary);
@@ -253,15 +429,14 @@
         .feature-description {
             color: var(--text-secondary);
             line-height: 1.6;
-            font-size: 0.95rem;
         }
 
         /* Footer */
         .footer {
-            background: var(--text-primary);
-            color: white;
-            padding: 60px 0 40px;
-            text-align: center;
+            padding: 4rem 0 2rem;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-top: 1px solid var(--border-color);
+            color: #ffffff;
         }
 
         .footer-content {
@@ -269,13 +444,11 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 3rem;
             margin-bottom: 3rem;
-            text-align: left;
         }
 
         .footer-section h4 {
-            font-size: 1.1rem;
             margin-bottom: 1rem;
-            color: white;
+            color: #ffffff;
         }
 
         .footer-section ul {
@@ -289,16 +462,17 @@
         .footer-section a {
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
-            transition: color 0.2s ease;
+            transition: color 0.3s ease;
         }
 
         .footer-section a:hover {
-            color: white;
+            color: #ffffff;
         }
 
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.2);
             padding-top: 2rem;
+            text-align: center;
             color: rgba(255, 255, 255, 0.8);
         }
 
@@ -316,39 +490,53 @@
                 grid-template-columns: 1fr;
             }
             
-            .features-grid {
-                grid-template-columns: 1fr;
+            .nav-links {
+                display: none;
             }
             
             .container {
-                padding: 0 16px;
-            }
-            
-            .section {
-                padding: 60px 0;
+                padding: 0 1rem;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">Redis Stream Queue</div>
+                <ul class="nav-links">
+                    <li><a href="#quick-install">快速安装</a></li>
+                    <li><a href="#quick-start">快速开始</a></li>
+                    <li><a href="#features">核心特性</a></li>
+                    <li><a href="https://github.com/Tinywan/redis-stream">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <h1>Redis Stream Queue</h1>
-            <p class="subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
-            <div class="hero-buttons">
-                <a href="#quick-install" class="btn btn-primary">快速开始</a>
-                <a href="https://github.com/Tinywan/redis-stream" class="btn btn-secondary">查看文档</a>
+            <div class="hero-content">
+                <h1>Redis Stream Queue</h1>
+                <p class="subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
+                <div class="hero-buttons">
+                    <a href="#quick-install" class="btn btn-primary">🚀 快速开始</a>
+                    <a href="https://github.com/Tinywan/redis-stream" class="btn btn-secondary">📖 查看文档</a>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Quick Install Section -->
-    <section id="quick-install" class="section quick-install">
+    <section id="quick-install" class="install">
         <div class="container">
-            <div class="install-container">
+            <div class="install-content">
+                <h2>🚀 快速安装</h2>
                 <div class="code-block">
-                    <button class="copy-button" onclick="copyCode()">复制</button>
+                    <button class="copy-btn" onclick="copyCode()">复制</button>
                     composer require tinywan/redis-stream
                 </div>
             </div>
@@ -356,60 +544,65 @@
     </section>
 
     <!-- Quick Start Section -->
-    <section id="quick-start" class="section quick-start">
+    <section id="quick-start" class="quick-start">
         <div class="container">
-            <h2 class="section-title">快速开始</h2>
+            <h2 class="section-title">⚡ 快速开始</h2>
             <div class="code-grid">
                 <div class="code-card">
                     <div class="code-card-header">📤 生产者示例</div>
-                    <div class="code-card-content">// 创建队列实例
-$redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
-$queueConfig = [
-    'stream_name' => 'my_queue',
-    'consumer_group' => 'my_group'
-];
+                    <div class="code-card-content"><div class="typing-code"><span class="php-tag">&lt;?php</span>
 
-$queue = RedisStreamQueue::getInstance(
-    $redisConfig, 
-    $queueConfig, 
-    $logger
-);
+<span class="php-comment">// 基础配置</span>
+<span class="php-variable">$redisConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span><span class="php-string">'host'</span> <span class="php-operator">=></span> <span class="php-string">'127.0.0.1'</span><span class="php-operator">,</span> <span class="php-string">'port'</span> <span class="php-operator">=></span> <span class="php-number">6379</span><span class="php-bracket">]</span><span class="php-operator">;</span>
+<span class="php-variable">$queueConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span>
+    <span class="php-string">'stream_name'</span> <span class="php-operator">=></span> <span class="php-string">'my_queue'</span><span class="php-operator">,</span>
+    <span class="php-string">'consumer_group'</span> <span class="php-operator">=></span> <span class="php-string">'my_group'</span>
+<span class="php-bracket">]</span><span class="php-operator">;</span>
 
-// 发送消息
-$messageId = $queue->send([
-    'type' => 'user_registered',
-    'user_id' => 123,
-    'email' => 'user@example.com'
-]);</div>
+<span class="php-comment">// 创建队列实例</span>
+<span class="php-variable">$queue</span> <span class="php-operator">=</span> <span class="php-class">RedisStreamQueue</span><span class="php-operator">::</span><span class="php-method">getInstance</span><span class="php-bracket">(</span>
+    <span class="php-variable">$redisConfig</span><span class="php-operator">,</span> <span class="php-variable">$queueConfig</span><span class="php-operator">,</span> 
+    <span class="php-variable">$logger</span>
+<span class="php-bracket">)</span><span class="php-operator">;</span>
+
+<span class="php-comment">// 发送消息</span>
+<span class="php-variable">$messageId</span> <span class="php-operator">=</span> <span class="php-variable">$queue</span><span class="php-operator">-></span><span class="php-method">send</span><span class="php-bracket">(</span><span class="php-bracket">[</span>
+    <span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'user_registered'</span><span class="php-operator">,</span>
+    <span class="php-string">'user_id'</span> <span class="php-operator">=></span> <span class="php-number">123</span><span class="php-operator">,</span>
+    <span class="php-string">'email'</span> <span class="php-operator">=></span> <span class="php-string">'user@example.com'</span>
+<span class="php-bracket">]</span><span class="php-bracket">)</span><span class="php-operator">;</span></div></div>
                 </div>
                 <div class="code-card">
                     <div class="code-card-header">📥 消费者示例</div>
-                    <div class="code-card-content">// 创建消费者实例
-$consumer = new Consumer($queue);
+                    <div class="code-card-content"><div class="typing-code"><span class="php-tag">&lt;?php</span>
 
-// 消费消息
-$message = $consumer->consume(function($message) {
-    // 处理消息
-    echo "Processing: " . $message['type'] . "\\n";
-    
-    // 业务逻辑处理
-    // ...
-    
-    return true; // 成功处理
-});
+<span class="php-comment">// 创建消费者实例</span>
+<span class="php-variable">$consumer</span> <span class="php-operator">=</span> <span class="php-keyword">new</span> <span class="php-class">Consumer</span><span class="php-bracket">(</span><span class="php-variable">$queue</span><span class="php-bracket">)</span><span class="php-operator">;</span>
 
-if ($message) {
-    echo "Message processed: " . $message['id'] . "\\n";
-}</div>
+<span class="php-comment">// 消费消息</span>
+<span class="php-variable">$message</span> <span class="php-operator">=</span> <span class="php-variable">$consumer</span><span class="php-operator">-></span><span class="php-method">consume</span><span class="php-bracket">(</span><span class="php-keyword">function</span><span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
+    <span class="php-echo">echo</span> <span class="php-string">"Processing: "</span> <span class="php-operator">.</span> 
+        <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'type'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
+    
+    <span class="php-comment">// 业务逻辑处理</span>
+    <span class="php-comment">// ...</span>
+    
+    <span class="php-keyword">return</span> <span class="php-keyword">true</span><span class="php-operator">;</span> <span class="php-comment">// 成功处理</span>
+<span class="php-bracket">}</span><span class="php-bracket">)</span><span class="php-operator">;</span>
+
+<span class="php-keyword">if</span> <span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
+    <span class="php-echo">echo</span> <span class="php-string">"Message processed: "</span> <span class="php-operator">.</span> 
+        <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'id'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
+<span class="php-bracket">}</span></div></div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="section features">
+    <section id="features" class="features">
         <div class="container">
-            <h2 class="section-title">核心特性</h2>
+            <h2 class="section-title">✨ 核心特性</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <span class="feature-icon">⚡</span>
@@ -484,18 +677,14 @@ if ($message) {
         function copyCode() {
             const codeText = 'composer require tinywan/redis-stream';
             navigator.clipboard.writeText(codeText).then(() => {
-                const button = document.querySelector('.copy-button');
+                const button = document.querySelector('.copy-btn');
                 const originalText = button.textContent;
                 button.textContent = '已复制!';
                 button.style.background = 'var(--success-color)';
-                button.style.color = 'white';
-                button.style.borderColor = 'var(--success-color)';
                 
                 setTimeout(() => {
                     button.textContent = originalText;
-                    button.style.background = 'white';
-                    button.style.color = 'var(--text-primary)';
-                    button.style.borderColor = 'var(--border-color)';
+                    button.style.background = 'var(--primary-color)';
                 }, 2000);
             });
         }
@@ -512,6 +701,21 @@ if ($message) {
                     });
                 }
             });
+        });
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.nav');
+            if (window.scrollY > 100) {
+                nav.style.background = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                nav.style.background = 'rgba(255, 255, 255, 0.95)';
+            }
+        });
+
+        // 页面加载完成后移除打字机效果的延迟
+        document.addEventListener('DOMContentLoaded', function() {
+            // 立即显示所有代码内容，无需打字机效果
         });
     </script>
 </body>
