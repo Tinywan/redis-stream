@@ -6,290 +6,568 @@
     <title>Redis Stream Queue - 基于 Redis Stream 的高性能轻量级消息队列</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
+        
+        :root {
+            --primary-color: #0066ff;
+            --secondary-color: #00d4ff;
+            --accent-color: #ff6b6b;
+            --dark-bg: #0a0e27;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --success-color: #10b981;
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+            line-height: 1.6;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 0 2rem;
         }
-        .hero {
-            text-align: center;
-            padding: 4rem 0;
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 1rem 0;
         }
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            font-weight: 800;
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .hero p {
+
+        .logo {
             font-size: 1.5rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .actions {
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 8rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 102, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-buttons {
             display: flex;
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
-            margin-bottom: 4rem;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
         }
+
         .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background: white;
-            color: #667eea;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
             text-decoration: none;
-            border-radius: 8px;
             font-weight: 600;
+            font-size: 1rem;
             transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
-        .btn:hover {
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+        }
+
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.4);
         }
+
         .btn-secondary {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
         }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Install Section */
         .install {
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 2rem;
+            padding: 4rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .install-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .install h2 {
+            font-size: 2.5rem;
             margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .install h3 {
-            margin-bottom: 1rem;
-            text-align: center;
-            font-size: 1.5rem;
-        }
-        .install-code {
-            background: rgba(0,0,0,0.2);
-            padding: 1rem;
-            border-radius: 8px;
-            display: block;
-            font-family: 'Monaco', 'Menlo', monospace;
-            text-align: center;
+
+        .code-block {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
             font-size: 1.2rem;
-            margin: 1rem 0;
+            backdrop-filter: blur(10px);
         }
+
         .copy-btn {
-            background: rgba(255,255,255,0.2);
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-color);
             color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 8px 16px;
+            border: none;
+            padding: 0.5rem 1rem;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
         }
+
         .copy-btn:hover {
-            background: rgba(255,255,255,0.3);
+            background: var(--secondary-color);
+            transform: translateY(-1px);
         }
+
+        /* Quick Start */
         .quick-start {
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+            padding: 4rem 0;
         }
-        .quick-start h3 {
+
+        .section-title {
             text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.5rem;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+
         .code-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
             gap: 2rem;
         }
+
         .code-card {
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .code-card-header {
-            background: rgba(255,255,255,0.2);
-            padding: 1rem;
-            font-weight: 600;
-            text-align: center;
-        }
-        .code-card-content {
-            padding: 1.5rem;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-        .features {
-            background: rgba(255,255,255,0.1);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 3rem;
-            margin-bottom: 2rem;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
-        .features h2 {
+
+        .code-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.2);
+        }
+
+        .code-card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
             text-align: center;
-            margin-bottom: 2rem;
-            font-size: 2.5rem;
         }
+
+        .code-card-content {
+            padding: 2rem;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .code-card-content code {
+            color: var(--text-primary);
+        }
+
+        /* Features */
+        .features {
+            padding: 4rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid var(--border-color);
+        }
+
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
         }
+
         .feature-card {
-            background: rgba(255,255,255,0.1);
-            padding: 1.5rem;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            text-align: center;
-        }
-        .feature-card h3 {
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-        }
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            opacity: 0.8;
-            background: rgba(0,0,0,0.2);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
-            margin-bottom: 2rem;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 4rem 0 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--border-color);
+        }
+
         .footer-content {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+            gap: 3rem;
+            margin-bottom: 3rem;
         }
+
         .footer-section h4 {
             margin-bottom: 1rem;
+            color: var(--text-primary);
         }
+
         .footer-section ul {
             list-style: none;
         }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
         .footer-section a {
-            color: rgba(255,255,255,0.8);
+            color: var(--text-secondary);
             text-decoration: none;
+            transition: color 0.3s ease;
         }
+
         .footer-section a:hover {
-            color: white;
+            color: var(--primary-color);
         }
+
         .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.2);
-            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
         }
+
+        /* Responsive */
         @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+            
             .code-grid {
                 grid-template-columns: 1fr;
             }
-            .hero h1 {
-                font-size: 2rem;
+            
+            .nav-links {
+                display: none;
             }
-            .hero p {
-                font-size: 1.2rem;
+            
+            .container {
+                padding: 0 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="hero">
-            <h1>🚀 Redis Stream Queue</h1>
-            <p>基于 Redis Stream 的高性能轻量级消息队列</p>
-            <div class="actions">
-                <a href="#quick-install" class="btn">🚀 快速开始</a>
-                <a href="https://github.com/Tinywan/redis-stream" class="btn btn-secondary">📖 查看 GitHub</a>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">Redis Stream Queue</div>
+                <ul class="nav-links">
+                    <li><a href="#quick-install">快速安装</a></li>
+                    <li><a href="#quick-start">快速开始</a></li>
+                    <li><a href="#features">核心特性</a></li>
+                    <li><a href="https://github.com/Tinywan/redis-stream">GitHub</a></li>
+                </ul>
             </div>
         </div>
+    </nav>
 
-        <div id="quick-install" class="install">
-            <h3>🚀 快速安装</h3>
-            <div class="install-code">
-                composer require tinywan/redis-stream
-                <button class="copy-btn" onclick="copyCode()">复制</button>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Redis Stream Queue</h1>
+                <p class="subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
+                <div class="hero-buttons">
+                    <a href="#quick-install" class="btn btn-primary">🚀 快速开始</a>
+                    <a href="https://github.com/Tinywan/redis-stream" class="btn btn-secondary">📖 查看文档</a>
+                </div>
             </div>
         </div>
+    </section>
 
-        <div class="quick-start">
-            <h3>⚡ 快速开始</h3>
+    <!-- Quick Install Section -->
+    <section id="quick-install" class="install">
+        <div class="container">
+            <div class="install-content">
+                <h2>🚀 快速安装</h2>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode()">复制</button>
+                    composer require tinywan/redis-stream
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section id="quick-start" class="quick-start">
+        <div class="container">
+            <h2 class="section-title">⚡ 快速开始</h2>
             <div class="code-grid">
                 <div class="code-card">
                     <div class="code-card-header">📤 生产者示例</div>
                     <div class="code-card-content">// 基础配置
-$redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
-$queueConfig = [
+<code>$redisConfig = ['host' => '127.0.0.1', 'port' => 6379];</code>
+<code>$queueConfig = [
     'stream_name' => 'my_queue',
     'consumer_group' => 'my_group'
-];
+];</code>
 
 // 创建队列实例
-$queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
+<code>$queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);</code>
 
 // 发送消息
-$messageId = $queue->send([
+<code>$messageId = $queue->send([
     'type' => 'user_registered',
     'user_id' => 123,
     'email' => 'user@example.com'
-]);</div>
+]);</code></div>
                 </div>
                 <div class="code-card">
                     <div class="code-card-header">📥 消费者示例</div>
                     <div class="code-card-content">// 创建消费者实例
-$consumer = new Consumer($queue);
+<code>$consumer = new Consumer($queue);</code>
 
 // 消费消息
-$message = $consumer->consume(function($message) {
-    echo "Processing: " . $message['type'] . "\n";
+<code>$message = $consumer->consume(function($message) {
+    echo "Processing: " . $message['type'] . "\\n";
     
     // 业务逻辑处理
     // ...
     
     return true; // 成功处理
-});
+});</code>
 
-if ($message) {
-    echo "Message processed: " . $message['id'] . "\n";
-}</div>
+<code>if ($message) {
+    echo "Message processed: " . $message['id'] . "\\n";
+}</code></div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="features">
-            <h2>✨ 核心特性</h2>
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">✨ 核心特性</h2>
             <div class="features-grid">
                 <div class="feature-card">
-                    <h3>⚡ 超高性能</h3>
-                    <p>基于 Redis 5.0+ Stream 数据结构，性能卓越，支持高并发消息处理</p>
+                    <span class="feature-icon">⚡</span>
+                    <h3 class="feature-title">超高性能</h3>
+                    <p class="feature-description">基于 Redis 5.0+ Stream 数据结构，性能卓越，支持高并发消息处理</p>
                 </div>
                 <div class="feature-card">
-                    <h3>🔄 多生产者/消费者</h3>
-                    <p>支持多个生产者和消费者同时工作，提供完整的消费者组管理</p>
+                    <span class="feature-icon">🔄</span>
+                    <h3 class="feature-title">多生产者/消费者</h3>
+                    <p class="feature-description">支持多个生产者和消费者同时工作，提供完整的消费者组管理</p>
                 </div>
                 <div class="feature-card">
-                    <h3>💾 消息持久化</h3>
-                    <p>可靠的消息持久化存储，确保数据不丢失，支持断点续传</p>
+                    <span class="feature-icon">💾</span>
+                    <h3 class="feature-title">消息持久化</h3>
+                    <p class="feature-description">可靠的消息持久化存储，确保数据不丢失，支持断点续传</p>
                 </div>
                 <div class="feature-card">
-                    <h3>✅ ACK 确认机制</h3>
-                    <p>完善的消息确认机制，保证消息可靠投递和处理</p>
+                    <span class="feature-icon">✅</span>
+                    <h3 class="feature-title">ACK 确认机制</h3>
+                    <p class="feature-description">完善的消息确认机制，保证消息可靠投递和处理</p>
                 </div>
                 <div class="feature-card">
-                    <h3>🔄 智能重试</h3>
-                    <p>内置消息重试机制，自动处理失败消息，提高系统可靠性</p>
+                    <span class="feature-icon">🔄</span>
+                    <h3 class="feature-title">智能重试</h3>
+                    <p class="feature-description">内置消息重试机制，自动处理失败消息，提高系统可靠性</p>
                 </div>
                 <div class="feature-card">
-                    <h3>⏰ 延时消息</h3>
-                    <p>支持延时消息和定时消息，提供灵活的时间控制策略</p>
+                    <span class="feature-icon">⏰</span>
+                    <h3 class="feature-title">延时消息</h3>
+                    <p class="feature-description">支持延时消息和定时消息，提供灵活的时间控制策略</p>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="footer">
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
                     <h4>项目信息</h4>
@@ -320,7 +598,7 @@ if ($message) {
                 <p>© 2025 Redis Stream Queue. 基于 Redis Stream 的高性能轻量级消息队列</p>
             </div>
         </div>
-    </div>
+    </footer>
 
     <script>
         function copyCode() {
@@ -329,13 +607,11 @@ if ($message) {
                 const button = document.querySelector('.copy-btn');
                 const originalText = button.textContent;
                 button.textContent = '已复制!';
-                button.style.background = 'rgba(16, 185, 129, 0.3)';
-                button.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                button.style.background = 'var(--success-color)';
                 
                 setTimeout(() => {
                     button.textContent = originalText;
-                    button.style.background = 'rgba(255,255,255,0.2)';
-                    button.style.borderColor = 'rgba(255,255,255,0.3)';
+                    button.style.background = 'var(--primary-color)';
                 }, 2000);
             });
         }
@@ -352,6 +628,16 @@ if ($message) {
                     });
                 }
             });
+        });
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.nav');
+            if (window.scrollY > 100) {
+                nav.style.background = 'rgba(10, 14, 39, 0.98)';
+            } else {
+                nav.style.background = 'rgba(10, 14, 39, 0.95)';
+            }
         });
     </script>
 </body>
