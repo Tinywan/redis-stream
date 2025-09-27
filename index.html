@@ -108,6 +108,105 @@
             animation: pulse 6s ease-in-out infinite;
         }
 
+        /* 时间流波浪效果 */
+        .time-waves {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .wave {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(220, 56, 45, 0.1) 25%, 
+                rgba(130, 179, 103, 0.1) 50%, 
+                rgba(220, 56, 45, 0.1) 75%, 
+                transparent 100%);
+            border-radius: 50%;
+            animation: waveFlow 8s ease-in-out infinite;
+            filter: blur(2px);
+        }
+
+        .wave:nth-child(1) {
+            top: -50%;
+            left: -50%;
+            animation-delay: 0s;
+            animation-duration: 8s;
+        }
+
+        .wave:nth-child(2) {
+            top: -30%;
+            left: -30%;
+            animation-delay: 2s;
+            animation-duration: 10s;
+            opacity: 0.7;
+        }
+
+        .wave:nth-child(3) {
+            top: -70%;
+            left: -70%;
+            animation-delay: 4s;
+            animation-duration: 12s;
+            opacity: 0.5;
+        }
+
+        @keyframes waveFlow {
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(0deg) scale(0.8);
+                opacity: 0;
+            }
+            25% {
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateX(0%) translateY(0%) rotate(180deg) scale(1.2);
+                opacity: 0.8;
+            }
+            75% {
+                opacity: 0.4;
+            }
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(360deg) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* 3D阴影效果 */
+        .hero-shadow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 60%;
+            background: radial-gradient(ellipse at center, 
+                rgba(220, 56, 45, 0.15) 0%, 
+                rgba(130, 179, 103, 0.1) 40%, 
+                transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) rotateX(60deg);
+            filter: blur(20px);
+            animation: shadowPulse 6s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes shadowPulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) rotateX(60deg) scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translate(-50%, -50%) rotateX(60deg) scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
         /* 3D等离子粒子效果 */
         .hero::after {
             content: '';
@@ -671,6 +770,12 @@
 
     <!-- Hero Section -->
     <section class="hero">
+        <div class="time-waves">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+        <div class="hero-shadow"></div>
         <div class="container">
             <div class="hero-content">
                 <h1>🚀 Redis Stream Queue</h1>
