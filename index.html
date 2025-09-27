@@ -341,7 +341,7 @@
         .hero h1 {
             font-size: clamp(3.5rem, 8vw, 6rem);
             font-weight: 800;
-            margin-bottom: clamp(1.5rem, 3vh, 3rem);
+            margin-bottom: clamp(2rem, 5vh, 4rem);
             background: var(--redis-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -352,7 +352,7 @@
         .subtitle-wrapper {
             display: inline-block;
             position: relative;
-            margin-bottom: clamp(1.5rem, 4vh, 3.5rem);
+            margin-bottom: clamp(2.5rem, 6vh, 5rem);
             transform-style: preserve-3d;
             perspective: 1000px;
             animation: subtitleFloat 4s ease-in-out infinite;
@@ -448,23 +448,23 @@
 
         .hero-buttons {
             display: flex;
-            gap: clamp(0.8rem, 1.5vw, 1.5rem);
+            gap: clamp(1rem, 2vw, 2rem);
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: clamp(1rem, 2vh, 2rem);
+            margin-top: clamp(1.5rem, 3vh, 3rem);
             animation: fadeInUp 0.8s ease-out 0.4s both;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: clamp(0.8rem, 1.2vw, 1.2rem) clamp(1.5rem, 2.5vw, 2.5rem);
+            gap: clamp(0.5rem, 1vw, 0.8rem);
+            padding: clamp(1rem, 1.5vw, 1.4rem) clamp(2rem, 3vw, 3rem);
             border: none;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+            font-size: clamp(1rem, 1.3vw, 1.2rem);
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
@@ -855,7 +855,7 @@
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: clamp(2.5rem, 6vw, 3.5rem);
-                margin-bottom: 1.5rem;
+                margin-bottom: clamp(1.8rem, 4vh, 2.5rem);
             }
             
             .hero .subtitle {
@@ -863,17 +863,17 @@
             }
             
             .subtitle-wrapper {
-                margin-bottom: 2rem;
+                margin-bottom: clamp(2rem, 5vh, 3rem);
             }
             
             .hero-buttons {
-                gap: 0.8rem;
-                margin-top: 1.5rem;
+                gap: clamp(0.8rem, 2vw, 1.2rem);
+                margin-top: clamp(1.2rem, 3vh, 2rem);
             }
             
             .btn {
-                padding: 0.8rem 1.8rem;
-                font-size: 0.9rem;
+                padding: clamp(0.9rem, 1.5vw, 1.2rem) clamp(1.8rem, 2.5vw, 2.2rem);
+                font-size: clamp(0.95rem, 1.2vw, 1.1rem);
             }
             
             .code-grid {
