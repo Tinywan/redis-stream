@@ -237,16 +237,19 @@
             background: var(--primary-color);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.875rem;
+            font-size: 1rem;
+            font-weight: 600;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
         }
 
         .copy-btn:hover {
             background: var(--secondary-color);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
 
         /* Quick Start */
@@ -304,8 +307,8 @@
         }
 
         .code-block {
-            background: #1e293b;
-            border: 1px solid #334155;
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 2rem;
             margin: 2rem 0;
