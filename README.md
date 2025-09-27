@@ -1,4 +1,4 @@
-# 🚀 A Lightweight Queue Based On Redis Stream
+# 🚀 基于 Redis Stream 的高性能轻量级队列
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/tinywan/redis-stream.svg?style=flat-square)](https://packagist.org/packages/tinywan/redis-stream)
 [![Total Downloads](https://img.shields.io/packagist/dt/tinywan/redis-stream.svg?style=flat-square)](https://packagist.org/packages/tinywan/redis-stream)
@@ -7,39 +7,39 @@
 [![Redis Version](https://img.shields.io/badge/redis-%3E%3D5.0-red.svg)](https://redis.io)
 [![Tests](https://img.shields.io/badge/tests-81%20passing-brightgreen.svg)](https://github.com/Tinywan/redis-stream/actions)
 
-> 🚀 A high-performance, lightweight message queue based on Redis Stream with singleton pattern, connection pooling, and delayed message support.
+> 🚀 一个基于 Redis Stream 的高性能轻量级消息队列，支持单例模式、连接池管理和延时消息功能。
 
-## ✨ Features
+## ✨ 核心特性
 
-- ⚡ **High Performance** - Built on Redis 5.0+ Stream data structure for maximum performance
-- 🔄 **Multi-Producer/Consumer** - Support multiple producers and consumers working simultaneously
-- 💾 **Message Persistence** - Reliable message persistence ensures no data loss
-- ✅ **ACK Mechanism** - Comprehensive acknowledgment mechanism for guaranteed delivery
-- 🔄 **Retry Logic** - Built-in retry mechanism for handling failed messages
-- ⏰ **Delayed Messages** - Support delayed and scheduled messages with flexible time control
-- 🧪 **Comprehensive Testing** - Complete PHPUnit test suite coverage (81 tests, 289 assertions)
-- 📝 **PSR-3 Logging** - Standard PSR-3 logging interface with Monolog integration
-- 🏗️ **Singleton Pattern** - Singleton pattern support to avoid duplicate instance creation
-- 🏊 **Connection Pooling** - Redis connection pooling with automatic connection reuse and management
-- 🔧 **Easy Configuration** - Simple configuration with sensible defaults
+- ⚡ **超高性能** - 基于 Redis 5.0+ Stream 数据结构，性能卓越
+- 🔄 **多生产者/消费者** - 支持多个生产者和消费者同时工作
+- 💾 **消息持久化** - 可靠的消息持久化存储，确保数据不丢失
+- ✅ **ACK 确认机制** - 完善的消息确认机制，保证消息可靠投递
+- 🔄 **智能重试** - 内置消息重试机制，自动处理失败消息
+- ⏰ **延时消息** - 支持延时消息和定时消息，灵活的时间控制
+- 🧪 **完整测试** - 完整的 PHPUnit 测试套件（81个测试，289个断言）
+- 📝 **PSR-3 日志** - 标准 PSR-3 日志接口，完美集成 Monolog
+- 🏗️ **单例模式** - 单例模式支持，避免重复创建实例
+- 🏊 **连接池管理** - Redis 连接池，自动连接复用和管理
+- 🔧 **简单配置** - 提供合理的默认配置，开箱即用
 
-## 📋 Requirements
+## 📋 环境要求
 
 - PHP >= 7.4
 - Redis >= 5.0
 - Composer >= 2.0
-- ext-redis extension
-- ext-json extension
+- ext-redis 扩展
+- ext-json 扩展
 
-## 🚀 Installation
+## 🚀 快速安装
 
-Install via Composer:
+使用 Composer 安装：
 
 ```bash
 composer require tinywan/redis-stream
 ```
 
-Or add to your `composer.json`:
+或者在 `composer.json` 中添加：
 
 ```json
 {
@@ -49,9 +49,9 @@ Or add to your `composer.json`:
 }
 ```
 
-## 🎯 Quick Start
+## 🎯 快速开始
 
-### Basic Usage
+### 基本使用
 
 ```php
 <?php
@@ -60,87 +60,87 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Tinywan\RedisStream\RedisStreamQueue;
 use Tinywan\RedisStream\MonologFactory;
 
-// Create queue instance with default configuration
+// 使用默认配置创建队列实例
 $queue = RedisStreamQueue::getInstance();
 
-// Send immediate message
-$messageId = $queue->send('Hello, World!');
-echo "Message ID: $messageId\n";
+// 发送立即消息
+$messageId = $queue->send('你好，Redis Stream！');
+echo "消息ID: $messageId\n";
 
-// Send delayed message (execute after 30 seconds)
-$delayedMessageId = $queue->send('Delayed message', [], 30);
-echo "Delayed Message ID: $delayedMessageId\n";
+// 发送延时消息（30秒后执行）
+$delayedMessageId = $queue->send('延时消息', [], 30);
+echo "延时消息ID: $delayedMessageId\n";
 
-// Send scheduled message (execute at specific timestamp)
-$timestamp = time() + 3600; // 1 hour later
-$scheduledMessageId = $queue->send('Scheduled message', [], $timestamp);
-echo "Scheduled Message ID: $scheduledMessageId\n";
+// 发送定时消息（指定时间戳执行）
+$timestamp = time() + 3600; // 1小时后
+$scheduledMessageId = $queue->send('定时消息', [], $timestamp);
+echo "定时消息ID: $scheduledMessageId\n";
 
-// Consume messages
+// 消费消息
 $message = $queue->consume(function($message) {
-    echo "Processing message: " . $message['message'] . "\n";
-    return true; // Acknowledge message
+    echo "正在处理消息: " . $message['message'] . "\n";
+    return true; // 确认消息
 });
 
 if ($message) {
-    echo "Successfully consumed message: " . $message['id'] . "\n";
+    echo "成功消费消息: " . $message['id'] . "\n";
 }
 ```
 
-### Running Examples
+### 运行示例
 
-Task queue examples:
+任务队列示例：
 
 ```bash
-# Create tasks
+# 创建任务
 php task-queue.php producer
 
-# Process tasks
+# 处理任务
 php task-queue.php consumer
 
-# Check queue status
+# 查看队列状态
 php task-queue.php status
 ```
 
-Message handler examples:
+消息处理器示例：
 
 ```bash
-# Create test messages
+# 创建测试消息
 php message-handler.php producer
 
-# Process messages with custom handlers
+# 使用自定义处理器处理消息
 php message-handler.php consumer
 
-# Demo handler functionality
+# 演示各个处理器的功能
 php message-handler.php demo
 
-# Check queue status
+# 查看队列状态
 php message-handler.php status
 ```
 
-## 🧪 Testing
+## 🧪 运行测试
 
-Run the complete test suite:
+运行完整的测试套件：
 
 ```bash
-# Run all tests
+# 运行所有测试
 ./vendor/bin/phpunit
 
-# Run unit tests only
+# 只运行单元测试
 ./vendor/bin/phpunit --testsuite Unit
 
-# Run integration tests only
+# 只运行集成测试
 ./vendor/bin/phpunit --testsuite Integration
 
-# Generate coverage report
+# 生成覆盖率报告
 ./vendor/bin/phpunit --coverage-html coverage/
 ```
 
-## 🚀 Deployment
+## 🚀 生产部署
 
-### Supervisor Configuration
+### Supervisor 配置
 
-It's recommended to use Supervisor to manage long-running consumer processes:
+推荐使用 Supervisor 来管理长时间运行的消费者进程：
 
 ```ini
 [program:redis-stream-consumer]
@@ -153,64 +153,64 @@ redirect_stderr=true
 stdout_logfile=/var/log/supervisor/redis-stream-consumer.log
 ```
 
-## ⚙️ Configuration
+## ⚙️ 配置说明
 
-### RedisStreamQueue Singleton Factory Method
+### RedisStreamQueue 单例工厂方法
 
 ```php
 RedisStreamQueue::getInstance(
-    array $redisConfig,    // Redis connection configuration
-    array $queueConfig,    // Queue configuration  
-    ?LoggerInterface $logger = null  // Optional logger
+    array $redisConfig,    // Redis 连接配置
+    array $queueConfig,    // 队列配置  
+    ?LoggerInterface $logger = null  // 可选的日志记录器
 ): RedisStreamQueue
 ```
 
-**Singleton Pattern Benefits:**
-- 🚀 **Performance Boost**: Avoid duplicate instance and connection creation
-- 💾 **Memory Savings**: Same configuration queue instances share memory
-- 🔗 **Connection Reuse**: Manage Redis connections through connection pooling
-- 🎯 **State Management**: Unified queue instance state management
+**单例模式优势：**
+- 🚀 **性能提升**: 避免重复创建实例和连接
+- 💾 **内存节省**: 相同配置的队列实例共享内存
+- 🔗 **连接复用**: 通过连接池管理 Redis 连接
+- 🎯 **状态管理**: 统一管理队列实例状态
 
-### Redis Configuration ($redisConfig)
+### Redis 配置 ($redisConfig)
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| host | 127.0.0.1 | Redis host address |
-| port | 6379 | Redis port |
-| password | null | Redis password |
-| database | 0 | Redis database |
-| timeout | 5 | Connection timeout (seconds) |
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| host | 127.0.0.1 | Redis 主机地址 |
+| port | 6379 | Redis 端口 |
+| password | null | Redis 密码 |
+| database | 0 | Redis 数据库 |
+| timeout | 5 | 连接超时时间（秒） |
 
-### Queue Configuration ($queueConfig)
+### 队列配置 ($queueConfig)
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| stream_name | redis_stream_queue | Stream name |
-| consumer_group | redis_stream_group | Consumer group name |
-| consumer_name | consumer_{pid} | Consumer name |
-| block_timeout | 5000 | Block timeout (milliseconds) |
-| retry_attempts | 3 | Retry attempts |
-| retry_delay | 1000 | Retry delay (milliseconds) |
-| delayed_queue_suffix | _delayed | Delayed stream name suffix |
-| scheduler_interval | 1 | Scheduler check interval (seconds) |
-| max_batch_size | 100 | Maximum batch size per processing |
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| stream_name | redis_stream_queue | 流名称 |
+| consumer_group | redis_stream_group | 消费者组名称 |
+| consumer_name | consumer_{pid} | 消费者名称 |
+| block_timeout | 5000 | 阻塞超时时间（毫秒） |
+| retry_attempts | 3 | 重试次数 |
+| retry_delay | 1000 | 重试延迟（毫秒） |
+| delayed_queue_suffix | _delayed | 延时流名称后缀 |
+| scheduler_interval | 1 | 调度器检查间隔（秒） |
+| max_batch_size | 100 | 每次处理最大批次大小 |
 
-### Simplified Usage
+### 简化使用
 
-If using default configuration, you can pass empty arrays:
+如果使用默认配置，可以传递空数组：
 
 ```php
-// Use all default configurations
+// 使用所有默认配置
 $queue = new RedisStreamQueue([], [], $logger);
 
-// Only customize Redis configuration, use default queue configuration
+// 仅自定义Redis配置，使用默认队列配置
 $queue = new RedisStreamQueue(
     ['host' => '192.168.1.100', 'port' => 6380], 
     [], 
     $logger
 );
 
-// Only customize queue configuration, use default Redis configuration
+// 仅自定义队列配置，使用默认Redis配置
 $queue = RedisStreamQueue::getInstance(
     [], 
     ['stream_name' => 'my_queue'], 
@@ -218,135 +218,135 @@ $queue = RedisStreamQueue::getInstance(
 );
 ```
 
-## 🔧 Connection Pooling
+## 🔧 连接池管理
 
-The project includes a built-in Redis connection pool manager `RedisConnectionPool` that provides:
+项目内置了 Redis 连接池管理器 `RedisConnectionPool`，提供以下功能：
 
-- **Automatic Connection Reuse**: Redis connections with same configuration are reused
-- **Connection Health Check**: Automatically detect connection status and remove invalid connections
-- **Connection Pool Monitoring**: Provide connection pool status and connection information queries
-- **Resource Cleanup**: Support manual connection cleanup and automatic resource management
+- **自动连接复用**: 相同配置的 Redis 连接被复用
+- **连接健康检查**: 自动检测连接状态，移除失效连接
+- **连接池监控**: 提供连接池状态和连接信息查询
+- **资源清理**: 支持手动清理连接和自动资源管理
 
-#### Connection Pool Usage Example
+#### 连接池使用示例
 
 ```php
-// Get connection pool instance (singleton)
+// 获取连接池实例（单例）
 $pool = RedisConnectionPool::getInstance();
 
-// Get Redis connection
+// 获取 Redis 连接
 $redis = $pool->getConnection([
     'host' => '127.0.0.1',
     'port' => 6379,
     'database' => 0
 ]);
 
-// View connection pool status
+// 查看连接池状态
 $status = $pool->getPoolStatus();
-echo "Connection Pool Status: " . json_encode($status, JSON_PRETTY_PRINT);
+echo "连接池状态: " . json_encode($status, JSON_PRETTY_PRINT);
 
-// Clean all connections
+// 清理所有连接
 $clearedCount = $pool->clearAllConnections();
 ```
 
-## 🏗️ Singleton Pattern Management
+## 🏗️ 单例模式管理
 
-RedisStreamQueue provides complete singleton pattern management:
+RedisStreamQueue 提供完整的单例模式管理：
 
-#### Instance Management Methods
+#### 实例管理方法
 
 ```php
-// Get instance status
+// 获取实例状态
 $status = RedisStreamQueue::getInstancesStatus();
-echo "Total Instances: " . $status['total_instances'];
+echo "实例总数: " . $status['total_instances'];
 
-// Clean all instances
+// 清理所有实例
 $clearedCount = RedisStreamQueue::clearInstances();
-echo "Cleaned {$clearedCount} instances";
+echo "清理了 {$clearedCount} 个实例";
 
-// Get current connection information
+// 获取当前连接信息
 $connectionInfo = $queue->getConnectionInfo();
-echo "Connection Status: " . ($connectionInfo['is_alive'] ? 'Active' : 'Inactive');
+echo "连接状态: " . ($connectionInfo['is_alive'] ? '活跃' : '不活跃');
 
-// Get connection pool status
+// 获取连接池状态
 $poolStatus = $queue->getConnectionPoolStatus();
 ```
 
-## ⏰ Delayed Messages
+## ⏰ 延时消息
 
-Redis Stream Queue supports flexible delayed message functionality, allowing you to control message execution time through parameters.
+Redis Stream Queue 支持灵活的延时消息功能，可以通过参数控制消息的执行时间。
 
-### Delayed Message API
+### 延时消息 API
 
 ```php
-// Send immediate message
-$messageId = $queue->send('Immediate message');
+// 发送立即消息
+$messageId = $queue->send('立即执行的消息');
 
-// Send delayed message (execute after 30 seconds)
-$delayedId = $queue->send('Delayed message', [], 30);
+// 发送延时消息（30秒后执行）
+$delayedId = $queue->send('延时消息', [], 30);
 
-// Send scheduled message (execute at specific timestamp)
-$timestamp = time() + 3600; // 1 hour later
-$scheduledId = $queue->send('Scheduled message', [], $timestamp);
+// 发送定时消息（指定时间戳）
+$timestamp = time() + 3600; // 1小时后
+$scheduledId = $queue->send('定时消息', [], $timestamp);
 
-// Use Producer class to send delayed messages
+// 使用 Producer 类发送延时消息
 $producer = new Producer($queue);
-$producer->send('Producer delayed message', [], 60);
+$producer->send('生产者延时消息', [], 60);
 ```
 
-### Parameter Description
+### 参数说明
 
-Delayed messages are controlled by the third parameter:
+延时消息通过第三个参数控制：
 
-- **0 or negative**: Execute immediately
-- **Positive number less than current timestamp**: Delay seconds (supports any duration, e.g., 86400 = 1 day, 31536000 = 1 year)
-- **Positive number greater than current timestamp**: Specific execution timestamp
+- **0 或负数**: 立即执行
+- **正数且小于当前时间戳**: 延时秒数（支持任意时长，如 86400 = 1天，31536000 = 1年）
+- **正数且大于当前时间戳**: 指定执行时间戳
 
-### Message Scheduler
+### 消息调度器
 
-The system includes a built-in automatic scheduler that periodically checks the delayed queue and transfers expired messages to the main queue:
+系统内置自动调度器，会定期检查延时队列并将到期的消息转移到主队列：
 
 ```php
-// Manually run scheduler (usually runs automatically in consumers)
+// 手动运行调度器（通常在消费者中自动运行）
 $processedCount = $queue->runDelayedScheduler();
 
-// Get delayed queue status
+// 获取延时队列状态
 $delayedCount = $queue->getDelayedStreamLength();
-$upcomingCount = $queue->getUpcomingMessageCount(3600); // Messages within 1 hour
+$upcomingCount = $queue->getUpcomingMessageCount(3600); // 1小时内的消息
 ```
 
-### Framework Integration Examples
+### 框架集成示例
 
 ```php
-// ThinkPHP Integration
+// ThinkPHP 集成
 $queueService = new QueueService();
 $queueService->sendEmail([
     'to' => 'user@example.com',
-    'subject' => 'Welcome Email'
-], 1800); // Send after 30 minutes
+    'subject' => '欢迎邮件'
+], 1800); // 30分钟后发送
 
-// Webman Integration
+// Webman 集成
 $queueService = new QueueService();
 $queueService->sendDelayedEmail([
     'to' => 'user@example.com',
-    'subject' => 'Delayed Email'
-], 3600); // Send after 1 hour
+    'subject' => '延时邮件'
+], 3600); // 1小时后发送
 ```
 
-## 🤝 Contributing
+## 🤝 贡献指南
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+欢迎贡献代码！请随时提交 Pull Request。对于重大更改，请先创建 Issue 讨论您想要更改的内容。
 
-Please make sure to update tests as appropriate and follow the existing code style.
+请确保适当地更新测试并遵循现有的代码风格。
 
-## 📄 License
+## 📄 开源协议
 
-The MIT License (MIT). Please see [License File](LICENSE) for more information.
+本项目采用 MIT 协议开源。详情请查看 [协议文件](LICENSE)。
 
-## 🙏 Acknowledgments
+## 🙏 致谢
 
-- [Redis](https://redis.io/) - High performance data store
-- [Monolog](https://github.com/Seldaek/monolog) - Logging for PHP
-- [PHPUnit](https://phpunit.de/) - PHP testing framework
+- [Redis](https://redis.io/) - 高性能数据存储
+- [Monolog](https://github.com/Seldaek/monolog) - PHP 日志库
+- [PHPUnit](https://phpunit.de/) - PHP 测试框架
 
 ---
 
