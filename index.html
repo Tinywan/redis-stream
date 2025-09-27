@@ -122,74 +122,198 @@
 
         .time-particle {
             position: absolute;
-            width: 4px;
-            height: 4px;
-            background: radial-gradient(circle, rgba(220, 56, 45, 0.8) 0%, rgba(130, 179, 103, 0.6) 100%);
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            animation: timeFlow 15s linear infinite;
+            animation: timeFlow 12s linear infinite;
+            box-shadow: 0 0 10px currentColor;
         }
 
+        /* Redis 红色粒子 */
         .time-particle:nth-child(1) {
-            top: 10%;
+            top: 8%;
             left: -5%;
             animation-delay: 0s;
-            animation-duration: 12s;
+            animation-duration: 10s;
+            background: radial-gradient(circle, #dc382d 0%, #ff6b6b 100%);
+            color: #dc382d;
         }
 
         .time-particle:nth-child(2) {
-            top: 20%;
+            top: 18%;
             left: -5%;
-            animation-delay: 1s;
-            animation-duration: 14s;
+            animation-delay: 0.3s;
+            animation-duration: 11s;
+            background: radial-gradient(circle, #dc382d 0%, #ff6b6b 100%);
+            color: #dc382d;
         }
 
         .time-particle:nth-child(3) {
-            top: 30%;
+            top: 28%;
             left: -5%;
-            animation-delay: 2s;
-            animation-duration: 16s;
+            animation-delay: 0.6s;
+            animation-duration: 9s;
+            background: radial-gradient(circle, #dc382d 0%, #ff6b6b 100%);
+            color: #dc382d;
         }
 
+        /* 性能绿色粒子 */
         .time-particle:nth-child(4) {
-            top: 40%;
+            top: 38%;
             left: -5%;
-            animation-delay: 3s;
-            animation-duration: 13s;
+            animation-delay: 0.9s;
+            animation-duration: 12s;
+            background: radial-gradient(circle, #82b367 0%, #a8d5a8 100%);
+            color: #82b367;
         }
 
         .time-particle:nth-child(5) {
-            top: 50%;
+            top: 48%;
             left: -5%;
-            animation-delay: 4s;
-            animation-duration: 15s;
+            animation-delay: 1.2s;
+            animation-duration: 10s;
+            background: radial-gradient(circle, #82b367 0%, #a8d5a8 100%);
+            color: #82b367;
         }
 
         .time-particle:nth-child(6) {
-            top: 60%;
+            top: 58%;
             left: -5%;
-            animation-delay: 5s;
+            animation-delay: 1.5s;
             animation-duration: 11s;
+            background: radial-gradient(circle, #82b367 0%, #a8d5a8 100%);
+            color: #82b367;
         }
 
+        /* 速度黄色粒子 */
         .time-particle:nth-child(7) {
-            top: 70%;
+            top: 68%;
             left: -5%;
-            animation-delay: 6s;
-            animation-duration: 17s;
+            animation-delay: 1.8s;
+            animation-duration: 13s;
+            background: radial-gradient(circle, #f7d060 0%, #ffd93d 100%);
+            color: #f7d060;
         }
 
         .time-particle:nth-child(8) {
-            top: 80%;
+            top: 78%;
             left: -5%;
-            animation-delay: 7s;
-            animation-duration: 14s;
+            animation-delay: 2.1s;
+            animation-duration: 9s;
+            background: radial-gradient(circle, #f7d060 0%, #ffd93d 100%);
+            color: #f7d060;
         }
 
         .time-particle:nth-child(9) {
-            top: 90%;
+            top: 88%;
             left: -5%;
-            animation-delay: 8s;
+            animation-delay: 2.4s;
             animation-duration: 12s;
+            background: radial-gradient(circle, #f7d060 0%, #ffd93d 100%);
+            color: #f7d060;
+        }
+
+        /* 流畅蓝色粒子 */
+        .time-particle:nth-child(10) {
+            top: 15%;
+            left: -5%;
+            animation-delay: 2.7s;
+            animation-duration: 14s;
+            background: radial-gradient(circle, #4a90e2 0%, #87ceeb 100%);
+            color: #4a90e2;
+        }
+
+        .time-particle:nth-child(11) {
+            top: 35%;
+            left: -5%;
+            animation-delay: 3.0s;
+            animation-duration: 11s;
+            background: radial-gradient(circle, #4a90e2 0%, #87ceeb 100%);
+            color: #4a90e2;
+        }
+
+        .time-particle:nth-child(12) {
+            top: 55%;
+            left: -5%;
+            animation-delay: 3.3s;
+            animation-duration: 13s;
+            background: radial-gradient(circle, #4a90e2 0%, #87ceeb 100%);
+            color: #4a90e2;
+        }
+
+        .time-particle:nth-child(13) {
+            top: 75%;
+            left: -5%;
+            animation-delay: 3.6s;
+            animation-duration: 10s;
+            background: radial-gradient(circle, #4a90e2 0%, #87ceeb 100%);
+            color: #4a90e2;
+        }
+
+        /* 紫色神秘粒子 */
+        .time-particle:nth-child(14) {
+            top: 25%;
+            left: -5%;
+            animation-delay: 3.9s;
+            animation-duration: 12s;
+            background: radial-gradient(circle, #9b59b6 0%, #c39bd3 100%);
+            color: #9b59b6;
+        }
+
+        .time-particle:nth-child(15) {
+            top: 45%;
+            left: -5%;
+            animation-delay: 4.2s;
+            animation-duration: 14s;
+            background: radial-gradient(circle, #9b59b6 0%, #c39bd3 100%);
+            color: #9b59b6;
+        }
+
+        .time-particle:nth-child(16) {
+            top: 65%;
+            left: -5%;
+            animation-delay: 4.5s;
+            animation-duration: 11s;
+            background: radial-gradient(circle, #9b59b6 0%, #c39bd3 100%);
+            color: #9b59b6;
+        }
+
+        /* 橙色活力粒子 */
+        .time-particle:nth-child(17) {
+            top: 12%;
+            left: -5%;
+            animation-delay: 4.8s;
+            animation-duration: 13s;
+            background: radial-gradient(circle, #e67e22 0%, #f39c12 100%);
+            color: #e67e22;
+        }
+
+        .time-particle:nth-child(18) {
+            top: 32%;
+            left: -5%;
+            animation-delay: 5.1s;
+            animation-duration: 10s;
+            background: radial-gradient(circle, #e67e22 0%, #f39c12 100%);
+            color: #e67e22;
+        }
+
+        .time-particle:nth-child(19) {
+            top: 52%;
+            left: -5%;
+            animation-delay: 5.4s;
+            animation-duration: 12s;
+            background: radial-gradient(circle, #e67e22 0%, #f39c12 100%);
+            color: #e67e22;
+            animation-name: timeFlowSlow;
+        }
+
+        .time-particle:nth-child(20) {
+            top: 72%;
+            left: -5%;
+            animation-delay: 5.7s;
+            animation-duration: 15s;
+            background: radial-gradient(circle, #e67e22 0%, #f39c12 100%);
+            color: #e67e22;
         }
 
         @keyframes timeFlow {
@@ -211,6 +335,29 @@
             }
             100% {
                 transform: translateX(100vw) translateY(-50px) translateZ(0) scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes timeFlowSlow {
+            0% {
+                transform: translateX(0) translateY(0) translateZ(0) scale(0);
+                opacity: 0;
+            }
+            15% {
+                transform: translateX(15vw) translateY(-15px) translateZ(30px) scale(0.8);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateX(50vw) translateY(-8px) translateZ(80px) scale(1.2);
+                opacity: 0.9;
+            }
+            85% {
+                transform: translateX(85vw) translateY(-25px) translateZ(30px) scale(0.8);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateX(100vw) translateY(-40px) translateZ(0) scale(0);
                 opacity: 0;
             }
         }
@@ -886,6 +1033,17 @@
     <section class="hero">
         <div class="time-stream">
             <div class="time-trail"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
             <div class="time-particle"></div>
             <div class="time-particle"></div>
             <div class="time-particle"></div>
