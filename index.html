@@ -67,6 +67,7 @@
             background: linear-gradient(135deg, var(--redis-red), var(--redis-dark));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            transition: all 0.3s ease;
         }
 
         .nav-links {
@@ -228,15 +229,15 @@
         }
 
         .code-block {
-            background: var(--code-bg);
-            border: 1px solid var(--soft-gray);
+            background: #2d2d2d;
+            border: 1px solid #444;
             border-radius: 12px;
-            padding: 2rem;
+            padding: 2.5rem;
             margin: 2rem 0;
             position: relative;
             font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
-            font-size: 1.2rem;
-            color: var(--text-primary);
+            font-size: 1.4rem;
+            color: #f8fafc;
             backdrop-filter: blur(10px);
         }
 
@@ -314,11 +315,11 @@
             font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
             font-size: 1.2rem;
             line-height: 1.6;
-            color: var(--text-primary);
+            color: #f8fafc;
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
-            background: #f5f7fa;
+            background: #2d2d2d;
         }
 
         .code-block {
@@ -342,19 +343,26 @@
             font-size: 1.2rem;
         }
 
-        /* PHP 语法高亮 - 深色背景适配 */
-        .php-tag { color: #c792ea; font-weight: 600; }
-        .php-comment { color: #636f83; font-style: italic; }
-        .php-variable { color: #82aaff; }
-        .php-string { color: #c3e88d; }
-        .php-number { color: #f78c6c; }
-        .php-keyword { color: #c792ea; font-weight: 600; }
-        .php-class { color: #ffcb6b; }
-        .php-method { color: #82aaff; }
-        .php-function { color: #82aaff; }
-        .php-bracket { color: #e2e8f0; }
-        .php-operator { color: #89ddff; }
-        .php-echo { color: #c792ea; font-weight: 600; }
+        .typing-code-install {
+            color: #f8fafc;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 1.4rem;
+            line-height: 1.6;
+        }
+
+        /* PHP 语法高亮 - 浅黑色背景适配 */
+        .php-tag { color: #ff79c6; font-weight: 600; }
+        .php-comment { color: #6272a4; font-style: italic; }
+        .php-variable { color: #50fa7b; }
+        .php-string { color: #f1fa8c; }
+        .php-number { color: #bd93f9; }
+        .php-keyword { color: #ff79c6; font-weight: 600; }
+        .php-class { color: #8be9fd; }
+        .php-method { color: #50fa7b; }
+        .php-function { color: #50fa7b; }
+        .php-bracket { color: #f8f8f2; }
+        .php-operator { color: #ff79c6; }
+        .php-echo { color: #ff79c6; font-weight: 600; }
 
         /* 打字机效果 */
         .typing-effect {
@@ -577,7 +585,7 @@
                 <h2>快速安装</h2>
                 <div class="code-block">
                     <button class="copy-btn" onclick="copyCode()">复制</button>
-                    composer require tinywan/redis-stream
+                    <div id="install-code" class="typing-code-install"></div>
                 </div>
             </div>
         </div>
@@ -758,6 +766,9 @@
                 });
                 logo.style.color = '#ffffff';
                 logo.style.textShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
+                logo.style.background = 'none';
+                logo.style.webkitBackgroundClip = 'none';
+                logo.style.webkitTextFillColor = '#ffffff';
             } else {
                 nav.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 247, 250, 0.95) 100%)';
                 nav.style.boxShadow = '0 2px 15px rgba(220, 56, 45, 0.1)';
@@ -767,12 +778,29 @@
                 });
                 logo.style.color = '';
                 logo.style.textShadow = '';
+                logo.style.background = '';
+                logo.style.webkitBackgroundClip = 'text';
+                logo.style.webkitTextFillColor = 'transparent';
             }
         });
 
-        // 页面加载完成后移除打字机效果的延迟
+        // 页面加载完成后启动打字机效果
         document.addEventListener('DOMContentLoaded', function() {
-            // 立即显示所有代码内容，无需打字机效果
+            // 快速安装代码打字效果
+            const installCode = document.getElementById('install-code');
+            const installText = 'composer require tinywan/redis-stream';
+            let installIndex = 0;
+            
+            function typeInstallCode() {
+                if (installIndex < installText.length) {
+                    installCode.textContent += installText.charAt(installIndex);
+                    installIndex++;
+                    setTimeout(typeInstallCode, 100);
+                }
+            }
+            
+            // 延迟1秒后开始打字效果
+            setTimeout(typeInstallCode, 1000);
         });
     </script>
 </body>
