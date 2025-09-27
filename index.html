@@ -8,21 +8,22 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
-            --primary-color: #0066ff;
-            --secondary-color: #00d4ff;
-            --accent-color: #ff6b6b;
-            --dark-bg: #0a0e27;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --text-primary: #ffffff;
-            --text-secondary: #a0aec0;
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --accent-color: #10b981;
+            --dark-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
             --success-color: #10b981;
+            --code-bg: #f1f5f9;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
             line-height: 1.6;
-            background: var(--dark-bg);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             color: var(--text-primary);
             overflow-x: hidden;
         }
@@ -38,11 +39,12 @@
             position: fixed;
             top: 0;
             width: 100%;
-            background: rgba(10, 14, 39, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border-color);
             z-index: 1000;
             padding: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .nav-content {
@@ -294,34 +296,33 @@
         .code-card-content {
             padding: 2rem;
             font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-primary);
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
         }
 
         .code-block {
-            background: #1e1e1e;
+            background: var(--code-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 2rem;
             margin: 2rem 0;
             position: relative;
             font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
-            font-size: 1rem;
-            backdrop-filter: blur(10px);
+            font-size: 1.2rem;
             overflow: hidden;
         }
 
         .typing-code {
-            color: #d4d4d4;
+            color: var(--text-primary);
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
-            line-height: 1.6;
-            font-size: 0.85rem;
+            line-height: 1.8;
+            font-size: 1rem;
         }
 
         /* PHP 语法高亮 */
@@ -703,41 +704,15 @@
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('.nav');
             if (window.scrollY > 100) {
-                nav.style.background = 'rgba(10, 14, 39, 0.98)';
+                nav.style.background = 'rgba(255, 255, 255, 0.98)';
             } else {
-                nav.style.background = 'rgba(10, 14, 39, 0.95)';
+                nav.style.background = 'rgba(255, 255, 255, 0.95)';
             }
         });
 
-        // 打字机效果
-        function typeWriter(element, text, speed = 50) {
-            let i = 0;
-            element.innerHTML = '';
-            
-            function type() {
-                if (i < text.length) {
-                    element.innerHTML += text.charAt(i);
-                    i++;
-                    setTimeout(type, speed);
-                }
-            }
-            
-            type();
-        }
-
-        // 页面加载完成后启动打字机效果
+        // 页面加载完成后移除打字机效果的延迟
         document.addEventListener('DOMContentLoaded', function() {
-            const codeElements = document.querySelectorAll('.typing-code');
-            
-            // 为每个代码块添加打字机效果
-            codeElements.forEach((element, index) => {
-                const originalText = element.textContent;
-                
-                // 延迟启动每个代码块的打字机效果
-                setTimeout(() => {
-                    typeWriter(element, originalText, 30);
-                }, index * 1000);
-            });
+            // 立即显示所有代码内容，无需打字机效果
         });
     </script>
 </body>
