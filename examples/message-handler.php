@@ -6,42 +6,35 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/MessageHandlers.php';
 
 use Tinywan\RedisStream\RedisStreamQueue;
-use Tinywan\RedisStream\MonologFactory;
 use Tinywan\RedisStream\Producer;
 use Tinywan\RedisStream\Consumer;
 use App\MessageHandler\MessageHandlerRouter;
 
-// Redis 连接配置
-$redisConfig = [
-    'host' => '127.0.0.1',
-    'port' => 6379,
-    'password' => null,
-    'database' => 0,
-    'timeout' => 5,
-];
+// 加载配置文件
+$redisConfigs = require __DIR__ . '/../src/config/redis.php';
+$queueConfigs = require __DIR__ . '/../src/config/redis-stream-queue.php';
 
-// 日志配置
-$enableFileLogging = getenv('REDIS_STREAM_FILE_LOG') === 'true' || in_array('--file-log', $argv);
+// 环境配置
+$env = getenv('APP_ENV') ?: 'development';
 $enableDebug = getenv('REDIS_STREAM_DEBUG') === 'true' || in_array('--debug', $argv);
 
-// 队列配置
-$queueConfig = [
-    'stream_name' => 'handler_queue',
-    'consumer_group' => 'handler_workers',
-    'consumer_name' => 'handler_' . getmypid(),
-    'block_timeout' => 5000,
-    'retry_attempts' => 3,
-    'retry_delay' => 1000,
-];
+// 选择配置
+$redisConfig = $redisConfigs['default'];
+$queueConfig = $queueConfigs['message_handler'];
 
-$logger = MonologFactory::createLogger('message-handler', $enableFileLogging, $enableDebug);
-$taskQueue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
+// 动态配置
+$queueConfig['consumer_name'] = 'handler_' . getmypid();
+$queueConfig['debug'] = $enableDebug;
+
+$taskQueue = RedisStreamQueue::getInstance($redisConfig, $queueConfig);
+$logger = $taskQueue->getLogger();
 
 // 显示配置信息
 echo "=== MessageHandlerInterface 示例 ===\n";
+echo "环境: $env\n";
 echo "Redis配置: " . json_encode($taskQueue->getRedisConfig(), JSON_PRETTY_PRINT) . "\n";
 echo "队列配置: " . json_encode($taskQueue->getQueueConfig(), JSON_PRETTY_PRINT) . "\n";
-echo "日志配置: 文件日志=" . ($enableFileLogging ? '启用' : '禁用') . ", 调试模式=" . ($enableDebug ? '启用' : '禁用') . "\n";
+echo "日志配置: 调试模式=" . ($enableDebug ? '启用' : '禁用') . "\n";
 echo "================================\n\n";
 
 // 记录启动日志
@@ -333,9 +326,7 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
     echo "  php message-handler.php demo            # 演示各个处理器的功能\n";
     echo "  php message-handler.php status          # 查看队列状态\n";
     echo "\n🔧 日志配置选项:\n";
-    echo "  --file-log                     # 启用文件日志记录\n";
     echo "  --debug                        # 启用调试模式\n";
-    echo "  REDIS_STREAM_FILE_LOG=true     # 环境变量启用文件日志\n";
     echo "  REDIS_STREAM_DEBUG=true        # 环境变量启用调试模式\n";
     echo "\n💡 示例说明:\n";
     echo "  1. producer: 创建不同类型的测试消息\n";

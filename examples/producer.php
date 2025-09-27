@@ -5,46 +5,35 @@ declare(strict_types=1);
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Tinywan\RedisStream\RedisStreamQueue;
-use Tinywan\RedisStream\MonologFactory;
 use Tinywan\RedisStream\Producer;
 
-// 日志配置
-$enableFileLogging = getenv('REDIS_STREAM_FILE_LOG') === 'true' || in_array('--file-log', $argv);
+// 加载配置文件
+$redisConfigs = require __DIR__ . '/../src/config/redis.php';
+$queueConfigs = require __DIR__ . '/../src/config/redis-stream-queue.php';
+
+// 环境配置
+$env = getenv('APP_ENV') ?: 'development';
 $enableDebug = getenv('REDIS_STREAM_DEBUG') === 'true' || in_array('--debug', $argv);
 
-// Redis 连接配置
-$redisConfig = [
-    'host' => '127.0.0.1',
-    'port' => 6379,
-    'password' => null,
-    'database' => 0,
-    'timeout' => 5,
-];
+// 选择配置
+$redisConfig = $redisConfigs['default'];
+$queueConfig = $queueConfigs['task_queue'];
 
-// 队列配置
-$queueConfig = [
-    'stream_name' => 'task_queue',
-    'consumer_group' => 'task_workers',
-    'consumer_name' => 'producer_' . getmypid(),
-    'block_timeout' => 5000,
-    'retry_attempts' => 5,  // 任务重试5次
-    'retry_delay' => 2000,  // 重试间隔2秒
-];
+// 动态配置
+$queueConfig['consumer_name'] = 'producer_' . getmypid();
+$queueConfig['debug'] = $enableDebug;
 
-$taskQueue = RedisStreamQueue::getInstance(
-    $redisConfig,
-    $queueConfig,
-    MonologFactory::createLogger('task-queue', $enableFileLogging, $enableDebug)
-);
+$taskQueue = RedisStreamQueue::getInstance($redisConfig, $queueConfig);
 
 // 获取logger实例
 $logger = $taskQueue->getLogger();
 
 // 显示配置信息
 echo "=== 任务队列配置 ===\n";
+echo "环境: $env\n";
 echo "Redis配置: " . json_encode($taskQueue->getRedisConfig(), JSON_PRETTY_PRINT) . "\n";
 echo "队列配置: " . json_encode($taskQueue->getQueueConfig(), JSON_PRETTY_PRINT) . "\n";
-echo "日志配置: 文件日志=" . ($enableFileLogging ? '启用' : '禁用') . ", 调试模式=" . ($enableDebug ? '启用' : '禁用') . "\n";
+echo "日志配置: 调试模式=" . ($enableDebug ? '启用' : '禁用') . "\n";
 echo "===================\n\n";
 
 // 记录启动日志

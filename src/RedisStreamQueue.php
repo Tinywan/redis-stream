@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tinywan\RedisStream;
 
 use Tinywan\RedisStream\Exception\RedisStreamException;
-use Tinywan\RedisStream\RedisConnectionPool;
 use Monolog\Logger;
 use Redis;
 use Throwable;
@@ -50,7 +49,7 @@ class RedisStreamQueue
      * 
      * @param array $redisConfig Redis 连接配置
      * @param array $queueConfig 队列配置
-     * @param Logger|null $logger Monolog logger instance, defaults to console logger
+     * @param Logger|null $logger Monolog logger instance, defaults to file logger if enabled
      * @return static RedisStreamQueue 实例
      * @throws RedisStreamException 当连接失败时抛出异常
      */
@@ -75,7 +74,7 @@ class RedisStreamQueue
      * 
      * @param array $redisConfig Redis 连接配置
      * @param array $queueConfig 队列配置
-     * @param Logger|null $logger Monolog logger instance, defaults to console logger
+     * @param Logger|null $logger Monolog logger instance, defaults to file logger if enabled
      * @throws RedisStreamException 当 Redis 连接失败时抛出异常
      */
     private function __construct(
@@ -99,12 +98,13 @@ class RedisStreamQueue
             'block_timeout' => 5000,        // 阻塞超时时间（毫秒）
             'retry_attempts' => 3,          // 重试次数
             'retry_delay' => 1000,          // 重试延迟（毫秒）
+            'debug' => false,               // 是否启用调试模式（启用时记录日志）
         ], $queueConfig);
 
         $this->streamName = $this->queueConfig['stream_name'];
         $this->consumerGroup = $this->queueConfig['consumer_group'];
         $this->consumerName = $this->queueConfig['consumer_name'];
-        $this->logger = $logger ?? MonologFactory::createConsoleLogger();
+        $this->logger = $logger ?? MonologFactory::createLogger('redis-stream', $this->queueConfig['debug']);
         
         // 初始化连接池
         $this->connectionPool = RedisConnectionPool::getInstance();

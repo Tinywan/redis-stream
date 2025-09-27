@@ -1,12 +1,15 @@
-# CLAUDE.md
-
-此文件为 Claude Code (claude.ai/code) 在此代码仓库中工作时提供指导。
-
 ## 项目概述
 
 这是一个基于 Redis Streams 的轻量级 PHP 队列实现，支持多生产者和消费者，具有消息持久化、确认机制、重试机制和可靠投递功能。
 
 ## 架构设计
+
+### 必需依赖
+
+- PHP 7.4+
+- Redis 扩展，需要 Redis 5.0+
+- Composer 2.0
+- Monolog（用于日志记录）
 
 ### 核心组件
 
@@ -70,13 +73,6 @@ $queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
 - `getConfig()`: 获取完整配置数组
 - `getConnectionPoolStatus()`: 获取连接池状态
 - `getInstancesStatus()`: 获取所有实例状态
-
-### 必需依赖
-
-- PHP 7.4+
-- Redis 扩展
-- Composer
-- Monolog（用于日志记录）
 
 ### 日志系统
 
