@@ -18,18 +18,11 @@
             --text-primary: #1a202c;
             --text-secondary: #4a5568;
             --border-color: #e2e8f0;
-            --code-bg: #1e293b;
-            --code-text: #f1f5f9;
+            --code-bg: #f6f8fa;
+            --code-text: #24292e;
             --success-color: #10b981;
             --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            --card-hover-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            /* 科技感色彩 */
-            --neon-blue: #00d4ff;
-            --neon-green: #00ff88;
-            --neon-purple: #8b5cf6;
-            --neon-pink: #ff0080;
-            --dark-bg: #0a0a0a;
-            --dark-card: #1a1a2e;
+            --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         body {
@@ -45,58 +38,27 @@
             padding: 0 24px;
         }
 
-        /* Header */
+        /* Hero Section - Clean & Minimal */
         .hero {
-            padding: 80px 0;
+            padding: 120px 0;
             text-align: center;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-            border-bottom: 1px solid rgba(0, 132, 255, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 90% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
-            animation: heroPulse 8s ease-in-out infinite;
-        }
-
-        @keyframes heroPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 0.8; }
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .hero h1 {
             font-size: 3.5rem;
-            font-weight: 800;
-            color: #ffffff;
+            font-weight: 700;
+            color: var(--text-primary);
             margin-bottom: 1.5rem;
             letter-spacing: -0.02em;
-            text-shadow: 0 0 30px rgba(0, 132, 255, 0.6);
-            background: linear-gradient(135deg, #ffffff 0%, #00d4ff 50%, #8b5cf6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            position: relative;
-            z-index: 2;
         }
 
         .hero .subtitle {
             font-size: 1.5rem;
-            color: #cbd5e1;
+            color: var(--text-secondary);
             margin-bottom: 3rem;
             font-weight: 400;
-            text-shadow: 0 0 10px rgba(0, 132, 255, 0.3);
-            position: relative;
-            z-index: 2;
         }
 
         .hero-buttons {
@@ -104,8 +66,6 @@
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
-            position: relative;
-            z-index: 2;
         }
 
         .btn {
@@ -124,32 +84,26 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--neon-blue), var(--primary-color));
+            background: var(--primary-color);
             color: white;
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 132, 255, 0.3);
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--neon-blue), var(--primary-dark));
-            transform: translateY(-2px);
-            box-shadow: 
-                0 8px 25px rgba(0, 132, 255, 0.5),
-                0 0 20px rgba(0, 212, 255, 0.3);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--card-hover-shadow);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 2px solid rgba(0, 212, 255, 0.3);
-            backdrop-filter: blur(10px);
+            background: white;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-            border-color: var(--neon-blue);
-            color: var(--neon-blue);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-1px);
         }
 
         /* Section Layout */
@@ -163,17 +117,12 @@
             text-align: center;
             margin-bottom: 3rem;
             color: var(--text-primary);
-            background: linear-gradient(135deg, var(--primary-color), var(--neon-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(0, 132, 255, 0.3);
         }
 
         /* Quick Install */
         .quick-install {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-bottom: 1px solid rgba(0, 132, 255, 0.2);
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .install-container {
@@ -182,31 +131,26 @@
             text-align: center;
         }
 
-        .install-description {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-        }
-
         .code-block {
             background: var(--code-bg);
             color: var(--code-text);
             padding: 2rem;
-            border-radius: 12px;
+            border-radius: 8px;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             line-height: 1.5;
             position: relative;
             margin: 2rem 0;
+            border: 1px solid var(--border-color);
         }
 
         .copy-button {
             position: absolute;
             top: 1rem;
             right: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
             padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
@@ -215,32 +159,14 @@
         }
 
         .copy-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
 
         /* Quick Start */
         .quick-start {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .quick-start::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(0, 132, 255, 0.05) 0%, transparent 60%),
-                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.05) 0%, transparent 60%);
-            animation: quickStartPulse 6s ease-in-out infinite;
-        }
-
-        @keyframes quickStartPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
+            background: white;
         }
 
         .code-grid {
@@ -248,229 +174,86 @@
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
             gap: 2rem;
             margin-top: 3rem;
-            position: relative;
-            z-index: 1;
         }
 
         .code-card {
-            background: rgba(30, 41, 59, 0.9);
-            border-radius: 12px;
+            background: white;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s ease;
-            border: 1px solid rgba(0, 132, 255, 0.2);
-            backdrop-filter: blur(10px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
         }
 
         .code-card:hover {
-            box-shadow: 
-                0 8px 30px rgba(0, 132, 255, 0.4),
-                0 0 20px rgba(0, 132, 255, 0.2);
-            transform: translateY(-6px);
-            border-color: rgba(0, 132, 255, 0.4);
+            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-2px);
         }
 
         .code-card-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--neon-blue));
+            background: var(--primary-color);
             color: white;
             padding: 1rem 1.5rem;
             font-weight: 600;
-            font-size: 1.1rem;
-            text-shadow: 0 0 10px rgba(0, 132, 255, 0.5);
+            font-size: 1rem;
         }
 
         .code-card-content {
-            padding: 1.5rem;
+            padding: 2rem;
             background: var(--code-bg);
             color: var(--code-text);
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 0.9rem;
-            line-height: 1.6;
+            line-height: 1.7;
             overflow-x: auto;
         }
 
-        /* 代码高亮样式 */
-        .code-card-content .keyword {
-            color: #ff79c6;
-        }
-
-        .code-card-content .string {
-            color: #f1fa8c;
-        }
-
-        .code-card-content .number {
-            color: #bd93f9;
-        }
-
-        .code-card-content .comment {
-            color: #6272a4;
-            font-style: italic;
-        }
-
-        .code-card-content .function {
-            color: #50fa7b;
-        }
-
-        .code-card-content .variable {
-            color: #8be9fd;
-        }
-
-        /* Features - Tech Style */
+        /* Features - Clean Cards */
         .features {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            border-bottom: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .features::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(0, 132, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.7; }
-        }
-
-        .section-title {
-            color: #ffffff !important;
-            text-shadow: 0 0 20px rgba(0, 132, 255, 0.5);
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
-            position: relative;
-            z-index: 1;
+            margin-top: 3rem;
         }
 
         .feature-card {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 132, 255, 0.3);
-            border-radius: 16px;
+            background: white;
             padding: 2rem;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s ease;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
+            border-radius: 8px;
+            text-align: left;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 132, 255, 0.2), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .feature-card:hover::before {
-            left: 100%;
         }
 
         .feature-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: rgba(0, 132, 255, 0.6);
-            box-shadow: 
-                0 20px 40px rgba(0, 132, 255, 0.3),
-                0 0 20px rgba(0, 132, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: var(--card-hover-shadow);
+            border-color: var(--primary-color);
         }
 
         .feature-icon {
-            font-size: 3.5rem;
-            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            margin-bottom: 1rem;
             display: block;
-            filter: drop-shadow(0 0 10px rgba(0, 132, 255, 0.3));
-            transition: all 0.3s ease;
-        }
-
-        .feature-card:hover .feature-icon {
-            transform: scale(1.1);
-            filter: drop-shadow(0 0 20px rgba(0, 132, 255, 0.6));
         }
 
         .feature-title {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 600;
             margin-bottom: 1rem;
-            color: #ffffff;
-            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text-primary);
         }
 
         .feature-description {
-            color: #cbd5e1;
+            color: var(--text-secondary);
             line-height: 1.6;
             font-size: 0.95rem;
-        }
-
-        /* 代码风格的装饰元素 */
-        .feature-card::after {
-            content: '';
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            width: 40px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #0084ff, transparent);
-            opacity: 0.6;
-        }
-
-        /* 特殊的霓虹灯效果 */
-        .feature-card:nth-child(odd) {
-            border-color: rgba(0, 132, 255, 0.3);
-        }
-
-        .feature-card:nth-child(even) {
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        .feature-card:nth-child(3n) {
-            border-color: rgba(139, 92, 246, 0.3);
-        }
-
-        /* Stats */
-        .stats {
-            background: var(--secondary-color);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            font-weight: 500;
         }
 
         /* Footer */
@@ -490,7 +273,7 @@
         }
 
         .footer-section h4 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin-bottom: 1rem;
             color: white;
         }
@@ -537,11 +320,6 @@
                 grid-template-columns: 1fr;
             }
             
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
-            }
-            
             .container {
                 padding: 0 16px;
             }
@@ -568,16 +346,11 @@
     <!-- Quick Install Section -->
     <section id="quick-install" class="section quick-install">
         <div class="container">
-            <h2 class="section-title">1. 快速安装</h2>
             <div class="install-container">
-                <p class="install-description">使用 Composer 一键安装 Redis Stream Queue</p>
                 <div class="code-block">
                     <button class="copy-button" onclick="copyCode()">复制</button>
                     composer require tinywan/redis-stream
                 </div>
-                <p style="color: var(--text-secondary); margin-top: 1rem;">
-                    要求 PHP 7.4+ 和 Redis 扩展
-                </p>
             </div>
         </div>
     </section>
@@ -585,48 +358,48 @@
     <!-- Quick Start Section -->
     <section id="quick-start" class="section quick-start">
         <div class="container">
-            <h2 class="section-title">2. 快速开始</h2>
+            <h2 class="section-title">快速开始</h2>
             <div class="code-grid">
                 <div class="code-card">
                     <div class="code-card-header">📤 生产者示例</div>
-                    <div class="code-card-content"><span class="comment">// 创建队列实例</span>
-<span class="variable">$redisConfig</span> = [<span class="string">'host'</span> => <span class="string">'127.0.0.1'</span>, <span class="string">'port'</span> => <span class="number">6379</span>];
-<span class="variable">$queueConfig</span> = [
-    <span class="string">'stream_name'</span> => <span class="string">'my_queue'</span>,
-    <span class="string">'consumer_group'</span> => <span class="string">'my_group'</span>
+                    <div class="code-card-content">// 创建队列实例
+$redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
+$queueConfig = [
+    'stream_name' => 'my_queue',
+    'consumer_group' => 'my_group'
 ];
 
-<span class="variable">$queue</span> = <span class="function">RedisStreamQueue::getInstance</span>(
-    <span class="variable">$redisConfig</span>, 
-    <span class="variable">$queueConfig</span>, 
-    <span class="variable">$logger</span>
+$queue = RedisStreamQueue::getInstance(
+    $redisConfig, 
+    $queueConfig, 
+    $logger
 );
 
-<span class="comment">// 发送消息</span>
-<span class="variable">$messageId</span> = <span class="variable">$queue</span>-><span class="function">send</span>([
-    <span class="string">'type'</span> => <span class="string">'user_registered'</span>,
-    <span class="string">'user_id'</span> => <span class="number">123</span>,
-    <span class="string">'email'</span> => <span class="string">'user@example.com'</span>
+// 发送消息
+$messageId = $queue->send([
+    'type' => 'user_registered',
+    'user_id' => 123,
+    'email' => 'user@example.com'
 ]);</div>
                 </div>
                 <div class="code-card">
                     <div class="code-card-header">📥 消费者示例</div>
-                    <div class="code-card-content"><span class="comment">// 创建消费者实例</span>
-<span class="variable">$consumer</span> = <span class="keyword">new</span> <span class="function">Consumer</span>(<span class="variable">$queue</span>);
+                    <div class="code-card-content">// 创建消费者实例
+$consumer = new Consumer($queue);
 
-<span class="comment">// 消费消息</span>
-<span class="variable">$message</span> = <span class="variable">$consumer</span>-><span class="function">consume</span>(<span class="keyword">function</span>(<span class="variable">$message</span>) {
-    <span class="comment">// 处理消息</span>
-    <span class="keyword">echo</span> <span class="string">"Processing: "</span> . <span class="variable">$message</span>[<span class="string">'type'</span>] . <span class="string">"\n"</span>;
+// 消费消息
+$message = $consumer->consume(function($message) {
+    // 处理消息
+    echo "Processing: " . $message['type'] . "\\n";
     
-    <span class="comment">// 业务逻辑处理</span>
-    <span class="comment">// ...</span>
+    // 业务逻辑处理
+    // ...
     
-    <span class="keyword">return</span> <span class="keyword">true</span>; <span class="comment">// 成功处理</span>
+    return true; // 成功处理
 });
 
-<span class="keyword">if</span> (<span class="variable">$message</span>) {
-    <span class="keyword">echo</span> <span class="string">"Message processed: "</span> . <span class="variable">$message</span>[<span class="string">'id'</span>] . <span class="string">"\n"</span>;
+if ($message) {
+    echo "Message processed: " . $message['id'] . "\\n";
 }</div>
                 </div>
             </div>
@@ -636,7 +409,7 @@
     <!-- Features Section -->
     <section id="features" class="section features">
         <div class="container">
-            <h2 class="section-title">3. 核心特性</h2>
+            <h2 class="section-title">核心特性</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <span class="feature-icon">⚡</span>
@@ -672,7 +445,6 @@
         </div>
     </section>
 
-  
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -715,13 +487,15 @@
                 const button = document.querySelector('.copy-button');
                 const originalText = button.textContent;
                 button.textContent = '已复制!';
-                button.style.background = 'rgba(16, 185, 129, 0.2)';
-                button.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                button.style.background = 'var(--success-color)';
+                button.style.color = 'white';
+                button.style.borderColor = 'var(--success-color)';
                 
                 setTimeout(() => {
                     button.textContent = originalText;
-                    button.style.background = 'rgba(255, 255, 255, 0.1)';
-                    button.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    button.style.background = 'white';
+                    button.style.color = 'var(--text-primary)';
+                    button.style.borderColor = 'var(--border-color)';
                 }, 2000);
             });
         }
@@ -737,32 +511,6 @@
                         block: 'start'
                     });
                 }
-            });
-        });
-
-        // 滚动动画
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        // 观察所有卡片
-        document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.feature-card, .code-card, .stat-item');
-            cards.forEach(card => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                observer.observe(card);
             });
         });
     </script>
