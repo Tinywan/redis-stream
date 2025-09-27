@@ -94,6 +94,7 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            background: linear-gradient(135deg, rgba(220, 56, 45, 0.05) 0%, rgba(130, 179, 103, 0.05) 50%, rgba(220, 56, 45, 0.05) 100%);
         }
 
         .hero::before {
@@ -160,57 +161,51 @@
         .subtitle-wrapper {
             display: inline-block;
             position: relative;
-            margin-bottom: 4rem;
+            margin-bottom: 2rem;
             transform-style: preserve-3d;
             perspective: 1000px;
-            animation: subtitleFloat 6s ease-in-out infinite;
+            animation: subtitleFloat 4s ease-in-out infinite;
         }
 
         @keyframes subtitleFloat {
             0%, 100% {
-                transform: translateY(0px) rotateX(0deg);
+                transform: translateY(0px) rotateX(0deg) rotateY(0deg);
             }
             25% {
-                transform: translateY(-5px) rotateX(2deg);
+                transform: translateY(-2px) rotateX(1deg) rotateY(1deg);
             }
             50% {
-                transform: translateY(0px) rotateX(0deg);
+                transform: translateY(0px) rotateX(0deg) rotateY(0deg);
             }
             75% {
-                transform: translateY(-3px) rotateX(-1deg);
+                transform: translateY(-1px) rotateX(-1deg) rotateY(-1deg);
             }
         }
 
         .hero .subtitle {
-            font-size: 3.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--redis-red), var(--performance-green));
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientShift 8s ease-in-out infinite, fadeInUp 0.8s ease-out 0.2s both;
-            text-shadow: 0 0 20px rgba(220, 56, 45, 0.3);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
             position: relative;
             z-index: 2;
             margin: 0;
-            letter-spacing: 2px;
-            line-height: 1.2;
+            line-height: 1.6;
         }
 
         .subtitle-wrapper::before {
             content: '';
             position: absolute;
-            top: -50px;
-            left: -50px;
-            right: -50px;
-            bottom: -50px;
-            background: linear-gradient(135deg, var(--redis-red), var(--performance-green));
-            background-size: 300% 300%;
-            border-radius: 30px;
-            filter: blur(40px);
-            opacity: 0.4;
-            animation: gradientShift 10s ease-in-out infinite reverse;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: linear-gradient(135deg, rgba(220, 56, 45, 0.1), rgba(130, 179, 103, 0.1));
+            background-size: 200% 200%;
+            border-radius: 15px;
+            filter: blur(15px);
+            opacity: 0.6;
+            animation: gradientShift 8s ease-in-out infinite reverse;
             z-index: 1;
         }
 
@@ -229,13 +224,13 @@
         .subtitle-wrapper::after {
             content: '';
             position: absolute;
-            top: -20px;
-            left: -20px;
-            right: -20px;
-            bottom: -20px;
-            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
-            border-radius: 25px;
-            animation: shimmer 4s ease-in-out infinite;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+            border-radius: 12px;
+            animation: shimmer 3s ease-in-out infinite;
             z-index: 3;
         }
 
