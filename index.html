@@ -493,6 +493,32 @@
             align-items: stretch;
         }
 
+        /* 代码行数限制和滚动 */
+        .code-card-content {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #555 #2d2d2d;
+        }
+
+        .code-card-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .code-card-content::-webkit-scrollbar-track {
+            background: #2d2d2d;
+            border-radius: 3px;
+        }
+
+        .code-card-content::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 3px;
+        }
+
+        .code-card-content::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
         .code-card {
             background: var(--card-bg);
             border: 1px solid var(--soft-gray);
@@ -520,6 +546,19 @@
             text-align: center;
             letter-spacing: 1px;
             text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-card-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            animation: shimmer 2s ease-in-out infinite;
         }
 
         .code-card-content {
@@ -528,12 +567,13 @@
             font-size: 1rem;
             line-height: 1.4;
             color: #f8fafc;
-            white-space: pre-wrap;
+            white-space: pre;
             word-break: break-all;
             overflow: hidden;
             background: #2d2d2d;
             margin: 0;
             flex: 1;
+            position: relative;
         }
 
         .typing-code {
@@ -825,12 +865,17 @@
     <span class="php-variable">$logger</span>
 <span class="php-bracket">)</span><span class="php-operator">;</span>
 
-<span class="php-comment">// 发送消息</span>
-<span class="php-variable">$messageId</span> <span class="php-operator">=</span> <span class="php-variable">$queue</span><span class="php-operator">-></span><span class="php-method">send</span><span class="php-bracket">(</span><span class="php-bracket">[</span>
-    <span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'user_registered'</span><span class="php-operator">,</span>
-    <span class="php-string">'user_id'</span> <span class="php-operator">=></span> <span class="php-number">123</span><span class="php-operator">,</span>
-    <span class="php-string">'email'</span> <span class="php-operator">=></span> <span class="php-string">'user@example.com'</span>
-<span class="php-bracket">]</span><span class="php-bracket">)</span><span class="php-operator">;</span></div></div>
+<span class="php-comment">// 批量发送消息</span>
+<span class="php-variable">$messages</span> <span class="php-operator">=</span> <span class="php-bracket">[</span>
+    <span class="php-bracket">[</span><span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'user_registered'</span><span class="php-operator">,</span> <span class="php-string">'user_id'</span> <span class="php-operator">=></span> <span class="php-number">123</span><span class="php-bracket">]</span><span class="php-operator">,</span>
+    <span class="php-bracket">[</span><span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'order_created'</span><span class="php-operator">,</span> <span class="php-string">'order_id'</span> <span class="php-operator">=></span> <span class="php-number">456</span><span class="php-bracket">]</span><span class="php-operator">,</span>
+    <span class="php-bracket">[</span><span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'payment_success'</span><span class="php-operator">,</span> <span class="php-string">'amount'</span> <span class="php-operator">=></span> <span class="php-number">99.99</span><span class="php-bracket">]</span>
+<span class="php-bracket">]</span><span class="php-operator">;</span>
+
+<span class="php-keyword">foreach</span> <span class="php-bracket">(</span><span class="php-variable">$messages</span> <span class="php-keyword">as</span> <span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
+    <span class="php-variable">$messageId</span> <span class="php-operator">=</span> <span class="php-variable">$queue</span><span class="php-operator">-></span><span class="php-method">send</span><span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span><span class="php-operator">;</span>
+    <span class="php-echo">echo</span> <span class="php-string">"Sent: "</span> <span class="php-operator">.</span> <span class="php-variable">$messageId</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
+<span class="php-bracket">}</span></div></div>
                 </div>
                 <div class="code-card">
                     <div class="code-card-header">消费者示例</div>
@@ -849,24 +894,19 @@
     <span class="php-variable">$logger</span>
 <span class="php-bracket">)</span><span class="php-operator">;</span>
 
-<span class="php-comment">// 创建消费者实例</span>
-<span class="php-variable">$consumer</span> <span class="php-operator">=</span> <span class="php-keyword">new</span> <span class="php-class">Consumer</span><span class="php-bracket">(</span><span class="php-variable">$queue</span><span class="php-bracket">)</span><span class="php-operator">;</span>
-
-<span class="php-comment">// 消费消息</span>
-<span class="php-variable">$message</span> <span class="php-operator">=</span> <span class="php-variable">$consumer</span><span class="php-operator">-></span><span class="php-method">consume</span><span class="php-bracket">(</span><span class="php-keyword">function</span><span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
-    <span class="php-echo">echo</span> <span class="php-string">"Processing: "</span> <span class="php-operator">.</span> 
-        <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'type'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
+<span class="php-comment">// 消费消息 (回调方式)</span>
+<span class="php-variable">$message</span> <span class="php-operator">=</span> <span class="php-variable">$queue</span><span class="php-operator">-></span><span class="php-method">consume</span><span class="php-bracket">(</span><span class="php-keyword">function</span><span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
+    <span class="php-echo">echo</span> <span class="php-string">"Processing: "</span> <span class="php-operator">.</span> <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'type'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
     
     <span class="php-comment">// 业务逻辑处理</span>
-    <span class="php-comment">// ...</span>
-    
-    <span class="php-keyword">return</span> <span class="php-keyword">true</span><span class="php-operator">;</span> <span class="php-comment">// 成功处理</span>
+    <span class="php-keyword">return</span> <span class="php-keyword">true</span><span class="php-operator">;</span> <span class="php-comment">// 自动确认</span>
 <span class="php-bracket">}</span><span class="php-bracket">)</span><span class="php-operator">;</span>
 
-<span class="php-keyword">if</span> <span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
-    <span class="php-echo">echo</span> <span class="php-string">"Message processed: "</span> <span class="php-operator">.</span> 
-        <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'id'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
-<span class="php-bracket">}</span></div></div>
+<span class="php-comment">// 或者直接消费</span>
+<span class="php-comment">// $message = $queue->consume();</span>
+<span class="php-comment">// if ($message) {</span>
+<span class="php-comment">//     $queue->ack($message['id']);</span>
+<span class="php-comment">// }</span></div></div>
                 </div>
             </div>
         </div>
