@@ -3,127 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redis Stream Queue - 测试页面</title>
+    <title>Redis Stream Queue - 高性能消息队列</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
             background: linear-gradient(135deg, #dc382d 0%, #c7362c 100%);
             color: white;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 80px 0;
             text-align: center;
-            padding: 20px;
         }
-
-        .container {
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 3rem;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        h1 {
+        
+        .hero-title {
             font-size: 3rem;
-            margin-bottom: 1rem;
             font-weight: 800;
+            margin-bottom: 1rem;
         }
-
-        .subtitle {
+        
+        .hero-subtitle {
             font-size: 1.5rem;
+            font-weight: 300;
             margin-bottom: 2rem;
-            opacity: 0.9;
+            opacity: 0.95;
         }
-
-        .status {
-            background: rgba(16, 185, 129, 0.2);
-            border: 2px solid rgba(16, 185, 129, 0.5);
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
-        }
-
-        .success {
-            color: #10b981;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .time {
-            margin-top: 2rem;
-            opacity: 0.8;
-        }
-
-        .links {
+        
+        .hero-buttons {
             display: flex;
             gap: 1rem;
             justify-content: center;
-            margin-top: 2rem;
             flex-wrap: wrap;
         }
-
+        
         .btn {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
             background: white;
             color: #dc382d;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: transform 0.2s ease;
         }
-
-        .btn:hover {
-            transform: translateY(-2px);
+        
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
         }
-
-        .url-info {
-            background: rgba(255, 255, 255, 0.1);
+        
+        .features {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
             border-radius: 8px;
-            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: #dc382d;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        
+        .feature-description {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+        
+        .installation {
+            padding: 60px 0;
+            background: white;
+            text-align: center;
+        }
+        
+        .install-code {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 1.1rem;
             margin: 1rem 0;
-            font-family: monospace;
+            display: inline-block;
         }
-
-        .correct-url {
-            color: #10b981;
-            font-weight: bold;
+        
+        .quickstart {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+        
+        .code-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .code-example {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .code-header {
+            background: #dc382d;
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .code-content {
+            padding: 1.5rem;
+            background: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+        
+        .stats {
+            padding: 40px 0;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #dc382d;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+        
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        
+        .footer-links a:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2rem; }
+            .hero-subtitle { font-size: 1.2rem; }
+            .code-examples { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 Redis Stream Queue</h1>
-        <p class="subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
-        
-        <div class="status">
-            <div class="success">✅ GitHub Pages 测试成功！</div>
-            <p>如果您能看到这个页面，说明 GitHub Pages 已正确配置并部署。</p>
-            <p>这是使用 Redis 品牌红色的全新设计。</p>
+    <header>
+        <div class="container">
+            <h1 class="hero-title">Redis Stream Queue</h1>
+            <p class="hero-subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
+            <div class="hero-buttons">
+                <a href="https://github.com/Tinywan/redis-stream" class="btn btn-primary">
+                    GitHub
+                </a>
+                <a href="https://packagist.org/packages/tinywan/redis-stream" class="btn btn-secondary">
+                    安装
+                </a>
+            </div>
         </div>
+    </header>
 
-        <div class="url-info">
-            <p><strong>正确访问地址：</strong></p>
-            <p class="correct-url">https://tinywan.github.io/redis-stream/</p>
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div>
+                    <div class="stat-number">1,027+</div>
+                    <div class="stat-label">下载量</div>
+                </div>
+                <div>
+                    <div class="stat-number">57</div>
+                    <div class="stat-label">单元测试</div>
+                </div>
+                <div>
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">集成测试</div>
+                </div>
+                <div>
+                    <div class="stat-number">69</div>
+                    <div class="stat-label">总计测试</div>
+                </div>
+            </div>
         </div>
+    </section>
 
-        <div class="links">
-            <a href="https://github.com/Tinywan/redis-stream" class="btn">📖 GitHub 仓库</a>
-            <a href="https://packagist.org/packages/tinywan/redis-stream" class="btn">📦 安装包</a>
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">核心特性</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">超高性能</h3>
+                    <p class="feature-description">基于 Redis 5.0+ Stream 数据结构，性能卓越，支持高并发消息处理</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">多生产者/消费者</h3>
+                    <p class="feature-description">支持多个生产者和消费者同时工作，提供完整的消费者组管理</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3 class="feature-title">消息持久化</h3>
+                    <p class="feature-description">可靠的消息持久化存储，确保数据不丢失，支持断点续传</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3 class="feature-title">ACK 确认机制</h3>
+                    <p class="feature-description">完善的消息确认机制，保证消息可靠投递和处理</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">智能重试</h3>
+                    <p class="feature-description">内置消息重试机制，自动处理失败消息，提高系统可靠性</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⏰</div>
+                    <h3 class="feature-title">延时消息</h3>
+                    <p class="feature-description">支持延时消息和定时消息，提供灵活的时间控制策略</p>
+                </div>
+            </div>
         </div>
+    </section>
 
-        <div class="time">
-            页面更新时间：<script>document.write(new Date().toLocaleString('zh-CN'));</script>
+    <section class="installation">
+        <div class="container">
+            <h2 class="section-title">快速安装</h2>
+            <p>使用 Composer 一键安装</p>
+            <div class="install-code">composer require tinywan/redis-stream</div>
+            <p>要求 PHP 7.4+ 和 Redis 扩展</p>
         </div>
-    </div>
+    </section>
+
+    <section class="quickstart">
+        <div class="container">
+            <h2 class="section-title">快速开始</h2>
+            <div class="code-examples">
+                <div class="code-example">
+                    <div class="code-header">生产者示例</div>
+                    <div class="code-content">// 创建队列实例
+$redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
+$queueConfig = [
+    'stream_name' => 'my_queue',
+    'consumer_group' => 'my_group'
+];
+
+$queue = RedisStreamQueue::getInstance(
+    $redisConfig, 
+    $queueConfig, 
+    $logger
+);
+
+// 发送消息
+$messageId = $queue->send([
+    'type' => 'user_registered',
+    'user_id' => 123,
+    'email' => 'user@example.com'
+]);</div>
+                </div>
+                <div class="code-example">
+                    <div class="code-header">消费者示例</div>
+                    <div class="code-content">// 消费消息
+$message = $queue->consume(function($message) {
+    // 处理消息
+    echo "Processing: " . $message['type'] . "\n";
+    
+    // 业务逻辑处理
+    return true; // 成功处理
+});
+
+if ($message) {
+    echo "Message processed: " . $message['id'] . "\n";
+}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/Tinywan/redis-stream">GitHub 仓库</a>
+                <a href="https://packagist.org/packages/tinywan/redis-stream">Packagist</a>
+                <a href="https://github.com/Tinywan/redis-stream/issues">问题反馈</a>
+            </div>
+            <p>© 2025 Redis Stream Queue. 基于 Redis Stream 的高性能轻量级消息队列</p>
+        </div>
+    </footer>
 </body>
 </html>
