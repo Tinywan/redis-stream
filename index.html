@@ -302,6 +302,37 @@
         .code-card-content code {
             color: var(--text-primary);
         }
+        
+        /* 语法高亮 */
+        .code-comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+        
+        .code-variable {
+            color: #9cdcfe;
+        }
+        
+        .code-string {
+            color: #ce9178;
+        }
+        
+        .code-number {
+            color: #b5cea8;
+        }
+        
+        .code-keyword {
+            color: #569cd6;
+            font-weight: 600;
+        }
+        
+        .code-class {
+            color: #4ec9b0;
+        }
+        
+        .code-method {
+            color: #dcdcaa;
+        }
 
         /* Features */
         .features {
@@ -486,41 +517,41 @@
             <div class="code-grid">
                 <div class="code-card">
                     <div class="code-card-header">📤 生产者示例</div>
-                    <div class="code-card-content">// 基础配置
-<code>$redisConfig = ['host' => '127.0.0.1', 'port' => 6379];</code>
-<code>$queueConfig = [
-    'stream_name' => 'my_queue',
-    'consumer_group' => 'my_group'
-];</code>
+                    <div class="code-card-content"><span class="code-comment">// 基础配置</span>
+<span class="code-variable">$redisConfig</span> = [<span class="code-string">'host'</span> => <span class="code-string">'127.0.0.1'</span>, <span class="code-string">'port'</span> => <span class="code-number">6379</span>];
+<span class="code-variable">$queueConfig</span> = [
+    <span class="code-string">'stream_name'</span> => <span class="code-string">'my_queue'</span>,
+    <span class="code-string">'consumer_group'</span> => <span class="code-string">'my_group'</span>
+];
 
-// 创建队列实例
-<code>$queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);</code>
+<span class="code-comment">// 创建队列实例</span>
+<span class="code-variable">$queue</span> = <span class="code-class">RedisStreamQueue</span>::<span class="code-method">getInstance</span>(<span class="code-variable">$redisConfig</span>, <span class="code-variable">$queueConfig</span>, <span class="code-variable">$logger</span>);
 
-// 发送消息
-<code>$messageId = $queue->send([
-    'type' => 'user_registered',
-    'user_id' => 123,
-    'email' => 'user@example.com'
-]);</code></div>
+<span class="code-comment">// 发送消息</span>
+<span class="code-variable">$messageId</span> = <span class="code-variable">$queue</span>-><span class="code-method">send</span>([
+    <span class="code-string">'type'</span> => <span class="code-string">'user_registered'</span>,
+    <span class="code-string">'user_id'</span> => <span class="code-number">123</span>,
+    <span class="code-string">'email'</span> => <span class="code-string">'user@example.com'</span>
+]);</div>
                 </div>
                 <div class="code-card">
                     <div class="code-card-header">📥 消费者示例</div>
-                    <div class="code-card-content">// 创建消费者实例
-<code>$consumer = new Consumer($queue);</code>
+                    <div class="code-card-content"><span class="code-comment">// 创建消费者实例</span>
+<span class="code-variable">$consumer</span> = <span class="code-keyword">new</span> <span class="code-class">Consumer</span>(<span class="code-variable">$queue</span>);
 
-// 消费消息
-<code>$message = $consumer->consume(function($message) {
-    echo "Processing: " . $message['type'] . "\\n";
+<span class="code-comment">// 消费消息</span>
+<span class="code-variable">$message</span> = <span class="code-variable">$consumer</span>-><span class="code-method">consume</span>(<span class="code-keyword">function</span>(<span class="code-variable">$message</span>) {
+    <span class="code-keyword">echo</span> <span class="code-string">"Processing: "</span> . <span class="code-variable">$message</span>[<span class="code-string">'type'</span>] . <span class="code-string">"\\n"</span>;
     
-    // 业务逻辑处理
-    // ...
+    <span class="code-comment">// 业务逻辑处理</span>
+    <span class="code-comment">// ...</span>
     
-    return true; // 成功处理
-});</code>
+    <span class="code-keyword">return</span> <span class="code-keyword">true</span>; <span class="code-comment">// 成功处理</span>
+});
 
-<code>if ($message) {
-    echo "Message processed: " . $message['id'] . "\\n";
-}</code></div>
+<span class="code-keyword">if</span> (<span class="code-variable">$message</span>) {
+    <span class="code-keyword">echo</span> <span class="code-string">"Message processed: "</span> . <span class="code-variable">$message</span>[<span class="code-string">'id'</span>] . <span class="code-string">"\\n"</span>;
+}</div>
                 </div>
             </div>
         </div>
