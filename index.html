@@ -220,18 +220,15 @@
             <div class="code-grid">
                 <div class="code-card">
                     <div class="code-card-header">📤 生产者示例</div>
-                    <div class="code-card-content">// 创建队列实例
+                    <div class="code-card-content">// 基础配置
 $redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
 $queueConfig = [
     'stream_name' => 'my_queue',
     'consumer_group' => 'my_group'
 ];
 
-$queue = RedisStreamQueue::getInstance(
-    $redisConfig, 
-    $queueConfig, 
-    $logger
-);
+// 创建队列实例
+$queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
 
 // 发送消息
 $messageId = $queue->send([
@@ -247,7 +244,6 @@ $consumer = new Consumer($queue);
 
 // 消费消息
 $message = $consumer->consume(function($message) {
-    // 处理消息
     echo "Processing: " . $message['type'] . "\n";
     
     // 业务逻辑处理
