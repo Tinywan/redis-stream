@@ -1,4 +1,4 @@
-# Redis Stream Queue
+# 🚀 A Lightweight Queue Based On Redis Stream
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/tinywan/redis-stream.svg?style=flat-square)](https://packagist.org/packages/tinywan/redis-stream)
 [![Total Downloads](https://img.shields.io/packagist/dt/tinywan/redis-stream.svg?style=flat-square)](https://packagist.org/packages/tinywan/redis-stream)
