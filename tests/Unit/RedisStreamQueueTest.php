@@ -26,7 +26,7 @@ class RedisStreamQueueTest extends TestCase
             'retry_attempts' => 5,
         ];
         
-        $queue = \Tinywan\RedisStream\RedisStreamQueue::getInstance($redisConfig, $queueConfig, MonologFactory::createConsoleLogger());
+        $queue = \Tinywan\RedisStream\RedisStreamQueue::getInstance($redisConfig, $queueConfig, MonologFactory::createLogger('test', true));
         
         $this->assertEquals('test_separated', $queue->getStreamName());
         $this->assertEquals('test_group_separated', $queue->getConsumerGroup());
@@ -172,7 +172,7 @@ class RedisStreamQueueTest extends TestCase
     
     public function testDefaultConfigValues(): void
     {
-        $queue = \Tinywan\RedisStream\RedisStreamQueue::getInstance([], [], MonologFactory::createConsoleLogger());
+        $queue = \Tinywan\RedisStream\RedisStreamQueue::getInstance([], [], MonologFactory::createLogger('test', true));
         
         $redisConfig = $queue->getRedisConfig();
         $this->assertEquals('127.0.0.1', $redisConfig['host']);
@@ -219,7 +219,91 @@ class RedisStreamQueueTest extends TestCase
                 'timeout' => 1,
             ],
             [],
-            MonologFactory::createConsoleLogger()
+            MonologFactory::createLogger('test', true)
         );
+    }
+    
+    public function testSendDelayedMessageWithSeconds(): void
+    {
+        $messageId = $this->queue->send('delayed message', ['type' => 'delayed'], 30);
+        
+        $this->assertIsString($messageId);
+        $this->assertNotEmpty($messageId);
+        $this->assertStringMatchesFormat('%x-%x', $messageId);
+        
+        // 检查延时队列长度
+        $delayedLength = $this->queue->getDelayedStreamLength();
+        $this->assertGreaterThan(0, $delayedLength);
+    }
+    
+    public function testSendDelayedMessageWithTimestamp(): void
+    {
+        $timestamp = time() + 3600; // 1小时后
+        $messageId = $this->queue->send('scheduled message', ['type' => 'scheduled'], $timestamp);
+        
+        $this->assertIsString($messageId);
+        $this->assertNotEmpty($messageId);
+        $this->assertStringMatchesFormat('%x-%x', $messageId);
+        
+        // 检查延时队列长度
+        $delayedLength = $this->queue->getDelayedStreamLength();
+        $this->assertGreaterThan(0, $delayedLength);
+    }
+    
+    public function testSendImmediateMessage(): void
+    {
+        $messageId = $this->queue->send('immediate message', ['type' => 'immediate'], 0);
+        
+        $this->assertIsString($messageId);
+        $this->assertNotEmpty($messageId);
+        $this->assertStringMatchesFormat('%x-%x', $messageId);
+        
+        // 检查主队列长度
+        $streamLength = $this->queue->getStreamLength();
+        $this->assertGreaterThan(0, $streamLength);
+    }
+    
+    public function testSendNegativeDelayMessage(): void
+    {
+        $messageId = $this->queue->send('negative delay message', ['type' => 'negative'], -1);
+        
+        $this->assertIsString($messageId);
+        $this->assertNotEmpty($messageId);
+        $this->assertStringMatchesFormat('%x-%x', $messageId);
+        
+        // 负数延时应该立即执行
+        $streamLength = $this->queue->getStreamLength();
+        $this->assertGreaterThan(0, $streamLength);
+    }
+    
+    public function testGetUpcomingMessageCount(): void
+    {
+        // 发送一些延时消息
+        $this->queue->send('upcoming 1', [], 30);
+        $this->queue->send('upcoming 2', [], 60);
+        $this->queue->send('upcoming 3', [], 120);
+        
+        $upcomingCount = $this->queue->getUpcomingMessageCount(180); // 3分钟内
+        $this->assertGreaterThanOrEqual(3, $upcomingCount);
+    }
+    
+    public function testRunDelayedScheduler(): void
+    {
+        // 发送一个即将到期的延时消息
+        $this->queue->send('expiring delayed message', [], 1);
+        
+        // 等待消息到期
+        $this->waitFor(1100);
+        
+        // 运行调度器
+        $processedCount = $this->queue->runDelayedScheduler();
+        $this->assertGreaterThanOrEqual(0, $processedCount);
+    }
+    
+    public function testDelayedStreamMethods(): void
+    {
+        $this->assertIsString($this->queue->getDelayedStreamName());
+        $this->assertIsInt($this->queue->getDelayedStreamLength());
+        $this->assertIsInt($this->queue->getUpcomingMessageCount(3600));
     }
 }

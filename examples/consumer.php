@@ -17,7 +17,7 @@ $enableDebug = getenv('REDIS_STREAM_DEBUG') === 'true' || in_array('--debug', $a
 
 // 选择配置
 $redisConfig = $redisConfigs['default'];
-$queueConfig = $queueConfigs['task_queue'];
+$queueConfig = $queueConfigs['default'];
 
 // 动态配置
 $queueConfig['consumer_name'] = 'worker_' . getmypid();
@@ -210,7 +210,8 @@ function processTasks(Consumer $consumer): void
     echo "🚀 Starting task processor...\n";
     echo "   Stream: " . $consumer->getQueue()->getStreamName() . "\n";
     echo "   Group: " . $consumer->getQueue()->getConsumerGroup() . "\n";
-    echo "   Consumer: " . $consumer->getQueue()->getConsumerName() . "\n\n";
+    echo "   Consumer: " . $consumer->getQueue()->getConsumerName() . "\n";
+    echo "   Delayed Stream: " . $consumer->getQueue()->getDelayedStreamName() . "\n\n";
     
     // 记录处理器启动日志
     $logger->info('Task processor started', [

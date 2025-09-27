@@ -34,7 +34,7 @@ abstract class TestCase extends BaseTestCase
         ];
         
         // 创建测试队列实例
-        $this->queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, MonologFactory::createConsoleLogger());
+        $this->queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, MonologFactory::createLogger('test', true));
     }
     
     protected function tearDown(): void

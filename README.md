@@ -4,7 +4,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/tinywan/redis-stream.svg?style=flat-square)](https://packagist.org/packages/tinywan/redis-stream)
 [![License](https://img.shields.io/packagist/l/tinywan/redis-stream.svg?style=flat-square)](https://packagist.org/packages/tinywan/redis-stream)
 
-🚀 一个基于 Redis Stream 的轻量级高性能消息队列，支持单例模式和连接池管理。
+🚀 一个基于 Redis Stream 的轻量级高性能消息队列，支持单例模式、连接池管理和延时消息。
 
 ## ✨ 特性
 
@@ -13,6 +13,7 @@
 - 💾 **消息持久化** - 消息持久化存储，确保数据不丢失
 - ✅ **ACK 确认机制** - 消息确认机制，保证消息可靠投递
 - 🔄 **重试机制** - 内置消息重试机制，处理失败消息
+- ⏰ **延时消息** - 支持延时消息和定时消息，灵活的时间控制
 - 🧪 **完整测试** - 完整的 PHPUnit 测试套件覆盖
 - 📝 **PSR-3 日志** - 标准 PSR-3 日志接口，支持 Monolog
 - 🏗️ **单例模式** - 单例模式支持，避免重复创建实例
@@ -56,36 +57,20 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Tinywan\RedisStream\RedisStreamQueue;
 use Tinywan\RedisStream\MonologFactory;
 
-// Redis 连接配置
-$redisConfig = [
-    'host' => '127.0.0.1',
-    'port' => 6379,
-    'password' => null,
-    'database' => 0,
-    'timeout' => 5,
-];
+$queue = RedisStreamQueue::getInstance();
 
-// 队列配置
-$queueConfig = [
-    'stream_name' => 'my_queue',
-    'consumer_group' => 'my_workers',
-    'consumer_name' => 'worker_' . getmypid(),
-    'block_timeout' => 5000,
-    'retry_attempts' => 3,
-    'retry_delay' => 1000,
-];
-
-// 创建队列实例（使用 Monolog 日志）
-// 推荐使用单例模式以复用连接和提升性能
-$queue = RedisStreamQueue::getInstance(
-    $redisConfig,
-    $queueConfig,
-    MonologFactory::createLogger('my-app')
-);
-
-// 发送消息
+// 发送立即消息
 $messageId = $queue->send('Hello, World!');
 echo "消息ID: $messageId\n";
+
+// 发送延时消息（30秒后执行）
+$delayedMessageId = $queue->send('Delayed message', [], 30);
+echo "延时消息ID: $delayedMessageId\n";
+
+// 发送定时消息（指定时间戳执行）
+$timestamp = time() + 3600; // 1小时后
+$scheduledMessageId = $queue->send('Scheduled message', [], $timestamp);
+echo "定时消息ID: $scheduledMessageId\n";
 
 // 消费消息
 $message = $queue->consume(function($message) {
@@ -113,83 +98,21 @@ php task-queue.php consumer
 php task-queue.php status
 ```
 
-### 单例模式示例
+运行消息处理器示例：
 
 ```bash
-# 运行单例模式演示
-php singleton-example.php
+# 创建测试消息
+php message-handler.php producer
+
+# 使用自定义处理器处理消息
+php message-handler.php consumer
+
+# 演示各个处理器的功能
+php message-handler.php demo
+
+# 查看队列状态
+php message-handler.php status
 ```
-
-单例模式示例演示了：
-- 单例实例的创建和复用
-- Redis 连接池的管理
-- 性能对比（单例 vs 新建实例）
-- 实例状态和连接状态监控
-- 资源清理和内存管理
-
-### Monolog 日志示例
-
-```bash
-# 运行Monolog日志配置示例
-php monolog-example.php
-```
-
-### Monolog 日志配置
-
-本项目集成了 Monolog 日志库，提供多种日志配置选项：
-
-```php
-use Tinywan\RedisStream\MonologFactory;
-
-// 开发环境日志（详细）
-$devLogger = MonologFactory::createDevelopmentLogger('my-app');
-
-// 生产环境日志（精简）
-$prodLogger = MonologFactory::createProductionLogger('my-app');
-
-// 控制台日志（CLI）
-$consoleLogger = MonologFactory::createConsoleLogger('my-app');
-
-// 组合日志（文件 + 控制台）
-$combinedLogger = MonologFactory::createCombinedLogger('my-app');
-
-// 根据环境变量自动配置
-$autoLogger = MonologFactory::createLogger('my-app');
-```
-
-#### 日志配置说明
-
-- **开发环境**：记录所有级别日志，包含详细调用信息，保留7天
-- **生产环境**：只记录 WARNING 及以上级别，简洁格式，保留30天
-- **控制台**：输出到标准输出，适合 CLI 应用
-- **组合**：同时输出到文件和控制台，不同级别过滤
-- **自动**：根据 `APP_ENV` 环境变量自动选择配置
-
-#### 日志文件位置
-
-所有日志文件保存在 `logs/` 目录中：
-- `development.log` - 开发环境日志
-- `production.log` - 生产环境日志
-- `combined.log` - 组合日志
-
-### 运行 Monolog 示例
-
-```bash
-php monolog-example.php
-```
-
-### 运行单例模式示例
-
-```bash
-php singleton-example.php
-```
-
-单例模式示例演示了：
-- 单例实例的创建和复用
-- Redis 连接池的管理
-- 性能对比（单例 vs 新建实例）
-- 实例状态和连接状态监控
-- 资源清理和内存管理
 
 ## 测试
 
@@ -261,6 +184,9 @@ RedisStreamQueue::getInstance(
 | block_timeout | 5000 | 阻塞超时时间（毫秒） |
 | retry_attempts | 3 | 重试次数 |
 | retry_delay | 1000 | 重试延迟（毫秒） |
+| delayed_queue_suffix | _delayed | 延时流名称后缀 |
+| scheduler_interval | 1 | 调度器检查间隔（秒） |
+| max_batch_size | 100 | 每次处理最大批次大小 |
 
 ### 简化使用
 
@@ -336,4 +262,65 @@ echo "连接状态: " . ($connectionInfo['is_alive'] ? '活跃' : '不活跃');
 
 // 获取连接池状态
 $poolStatus = $queue->getConnectionPoolStatus();
+```
+
+## 延时消息
+
+Redis Stream Queue 支持灵活的延时消息功能，可以通过参数控制消息的执行时间。
+
+### 延时消息 API
+
+```php
+// 发送立即消息
+$messageId = $queue->send('立即执行的消息');
+
+// 发送延时消息（30秒后执行）
+$delayedId = $queue->send('延时消息', [], 30);
+
+// 发送定时消息（指定时间戳）
+$timestamp = time() + 3600; // 1小时后
+$scheduledId = $queue->send('定时消息', [], $timestamp);
+
+// 使用 Producer 类发送延时消息
+$producer = new Producer($queue);
+$producer->send('生产者延时消息', [], 60);
+```
+
+### 参数说明
+
+延时消息通过第三个参数控制：
+
+- **0 或负数**：立即执行
+- **正数且小于当前时间戳**：延时秒数（支持任意时长，如 86400 = 1天，31536000 = 1年）
+- **正数且大于当前时间戳**：指定执行时间戳
+
+### 消息调度器
+
+系统内置自动调度器，会定期检查延时队列并将到期的消息转移到主队列：
+
+```php
+// 手动运行调度器（通常在消费者中自动运行）
+$processedCount = $queue->runDelayedScheduler();
+
+// 获取延时队列状态
+$delayedCount = $queue->getDelayedStreamLength();
+$upcomingCount = $queue->getUpcomingMessageCount(3600); // 1小时内的消息
+```
+
+### 框架集成示例
+
+```php
+// ThinkPHP 集成
+$queueService = new QueueService();
+$queueService->sendEmail([
+    'to' => 'user@example.com',
+    'subject' => '欢迎邮件'
+], 1800); // 30分钟后发送
+
+// Webman 集成
+$queueService = new QueueService();
+$queueService->sendDelayedEmail([
+    'to' => 'user@example.com',
+    'subject' => '延时邮件'
+], 3600); // 1小时后发送
 ```

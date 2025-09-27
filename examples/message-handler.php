@@ -20,7 +20,7 @@ $enableDebug = getenv('REDIS_STREAM_DEBUG') === 'true' || in_array('--debug', $a
 
 // 选择配置
 $redisConfig = $redisConfigs['default'];
-$queueConfig = $queueConfigs['message_handler'];
+$queueConfig = $queueConfigs['default'];
 
 // 动态配置
 $queueConfig['consumer_name'] = 'handler_' . getmypid();
@@ -46,7 +46,7 @@ $logger->info('MessageHandlerInterface example started', [
 ]);
 
 // 创建测试消息
-function createTestMessage(Producer $producer, string $type, array $data): void
+function createTestMessage(Producer $producer, string $type, array $data, int $delayOrTimestamp = 0): void
 {
     $messageId = uniqid('msg_');
     $messageData = [
@@ -64,7 +64,7 @@ function createTestMessage(Producer $producer, string $type, array $data): void
             'message_type' => $type,
             'message_id' => $messageId,
             'priority' => $data['priority'] ?? 'normal'
-        ]);
+        ], $delayOrTimestamp);
         
         $endTime = microtime(true);
         $duration = round(($endTime - $startTime) * 1000, 2);
@@ -175,18 +175,40 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
         $totalMessages++;
     }
     
+    // 创建延时消息
+    echo "⏰ Creating delayed messages...\n";
+    createTestMessage($producer, 'email', [
+        'to' => 'delayed@example.com',
+        'subject' => 'Delayed Email (30 minutes)',
+        'template' => 'delayed_welcome',
+        'priority' => 'normal'
+    ], 1800); // 30分钟延时
+    $totalMessages++;
+    
+    createTestMessage($producer, 'image', [
+        'filename' => 'delayed_avatar.png',
+        'operation' => 'thumbnail',
+        'width' => 100,
+        'height' => 100,
+        'format' => 'png',
+        'priority' => 'low'
+    ], 900); // 15分钟延时
+    
     // 记录批量创建完成日志
     $logger->info('Batch messages creation completed', [
         'total_messages' => $totalMessages,
         'stream_length' => $taskQueue->getStreamLength(),
         'pending_count' => $taskQueue->getPendingCount(),
-        'message_types' => ['email' => 4, 'image' => 3, 'log' => 6]
+        'delayed_stream_length' => $taskQueue->getDelayedStreamLength(),
+        'message_types' => ['email' => 5, 'image' => 4, 'log' => 6]
     ]);
     
     echo "\n✅ All messages created successfully!\n";
     echo "📊 Queue Status:\n";
     echo "   Stream Length: " . $taskQueue->getStreamLength() . "\n";
     echo "   Pending Count: " . $taskQueue->getPendingCount() . "\n";
+    echo "   Delayed Stream Length: " . $taskQueue->getDelayedStreamLength() . "\n";
+    echo "   Upcoming (30 minutes): " . $taskQueue->getUpcomingMessageCount(1800) . "\n";
     echo "   Total Messages: {$totalMessages}\n";
     
 } elseif (isset($argv[1]) && $argv[1] === 'consumer') {
@@ -213,6 +235,7 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
     echo "📋 Message Handler Router Configuration:\n";
     echo "   Available handlers: " . implode(', ', ['email', 'image', 'log']) . "\n";
     echo "   Stream: " . $taskQueue->getStreamName() . "\n";
+    echo "   Delayed Stream: " . $taskQueue->getDelayedStreamName() . "\n";
     echo "   Group: " . $taskQueue->getConsumerGroup() . "\n";
     echo "   Consumer: " . $taskQueue->getConsumerName() . "\n\n";
     
@@ -250,9 +273,12 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
 } elseif (isset($argv[1]) && $argv[1] === 'status') {
     echo "📊 Queue Status:\n";
     echo "   Stream: " . $taskQueue->getStreamName() . "\n";
+    echo "   Delayed Stream: " . $taskQueue->getDelayedStreamName() . "\n";
     echo "   Group: " . $taskQueue->getConsumerGroup() . "\n";
     echo "   Stream Length: " . $taskQueue->getStreamLength() . "\n";
     echo "   Pending Count: " . $taskQueue->getPendingCount() . "\n";
+    echo "   Delayed Stream Length: " . $taskQueue->getDelayedStreamLength() . "\n";
+    echo "   Upcoming (1 hour): " . $taskQueue->getUpcomingMessageCount(3600) . "\n";
     echo "   Consumer: " . $taskQueue->getConsumerName() . "\n";
     
     // 记录状态查询日志

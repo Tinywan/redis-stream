@@ -31,15 +31,20 @@ class Producer
      * 发送单条消息
      * 
      * 将消息发送到 Redis Stream 队列中
+     * 支持立即发送、延时发送和指定时间发送
      * 
      * @param mixed $message 消息内容，可以是字符串、数组或对象
      * @param array $metadata 附加的元数据
+     * @param int $delayOrTimestamp 延时秒数或指定时间戳：
+     *                              - 0 表示立即执行
+     *                              - 正整数且小于当前时间戳 表示延时秒数
+     *                              - 大于当前时间戳 表示指定时间戳
      * @return string 返回生成的消息ID
      * @throws RedisStreamException 当消息发送失败时抛出异常
      */
-    public function send($message, array $metadata = []): string
+    public function send($message, array $metadata = [], int $delayOrTimestamp = 0): string
     {
-        return $this->queue->send($message, $metadata);
+        return $this->queue->send($message, $metadata, $delayOrTimestamp);
     }
 
     /**
@@ -47,9 +52,9 @@ class Producer
      * 
      * 支持多种格式的消息批量发送：
      * - 字符串数组：['message1', 'message2']
-     * - 结构化数组：[['message' => 'content', 'metadata' => ['key' => 'value']]]
+     * - 结构化数组：[['message' => 'content', 'metadata' => ['key' => 'value'], 'delay' => 30]]
      * 
-     * @param array $messages 消息数组
+     * @param array $messages 消息数组，支持 delay 参数控制延时发送
      * @return array 返回生成的消息ID数组
      * @throws RedisStreamException 当消息发送失败时抛出异常
      */
@@ -61,7 +66,8 @@ class Producer
                 // 处理结构化消息
                 $content = $message['message'] ?? '';
                 $metadata = $message['metadata'] ?? [];
-                $results[] = $this->send($content, $metadata);
+                $delayOrTimestamp = $message['delay'] ?? 0;
+                $results[] = $this->send($content, $metadata, $delayOrTimestamp);
             } else {
                 // 处理简单消息
                 $results[] = $this->send((string)$message);
