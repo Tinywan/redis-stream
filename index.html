@@ -3,327 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redis Stream Queue - 高性能消息队列</title>
+    <title>Redis Stream Queue - 基于 Redis Stream 的高性能轻量级消息队列</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0084ff;
+            --primary-dark: #0066cc;
+            --secondary-color: #f8f9fa;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+            --code-text: #f1f5f9;
+            --success-color: #10b981;
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --card-hover-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: #2c3e50;
+            color: var(--text-primary);
             background: #ffffff;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 24px;
         }
-        
-        header {
-            background: linear-gradient(135deg, #dc382d 0%, #c7362c 100%);
-            color: white;
+
+        /* Header */
+        .hero {
             padding: 80px 0;
             text-align: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid var(--border-color);
         }
-        
-        .hero-title {
-            font-size: 3rem;
+
+        .hero h1 {
+            font-size: 3.5rem;
             font-weight: 800;
-            margin-bottom: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
         }
-        
-        .hero-subtitle {
+
+        .hero .subtitle {
             font-size: 1.5rem;
-            font-weight: 300;
-            margin-bottom: 2rem;
-            opacity: 0.95;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            font-weight: 400;
         }
-        
+
         .hero-buttons {
             display: flex;
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
+
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
             font-size: 1rem;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            white-space: nowrap;
         }
-        
+
         .btn-primary {
-            background: white;
-            color: #dc382d;
-        }
-        
-        .btn-secondary {
-            background: transparent;
+            background: var(--primary-color);
             color: white;
-            border: 2px solid white;
         }
-        
-        .features {
-            padding: 60px 0;
-            background: #f8f9fa;
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--card-hover-shadow);
         }
-        
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Section Layout */
+        .section {
+            padding: 80px 0;
+        }
+
         .section-title {
-            text-align: center;
             font-size: 2.5rem;
             font-weight: 700;
+            text-align: center;
             margin-bottom: 3rem;
-            color: #2c3e50;
+            color: var(--text-primary);
         }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-        
-        .feature-card {
+
+        /* Quick Install */
+        .quick-install {
             background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--border-color);
         }
-        
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: #dc382d;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .feature-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
-        }
-        
-        .feature-description {
-            color: #7f8c8d;
-            line-height: 1.6;
-        }
-        
-        .installation {
-            padding: 60px 0;
-            background: white;
+
+        .install-container {
+            max-width: 800px;
+            margin: 0 auto;
             text-align: center;
         }
-        
-        .install-code {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 1rem 1.5rem;
-            border-radius: 6px;
-            font-family: 'Monaco', 'Menlo', monospace;
+
+        .install-description {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 2rem;
+            border-radius: 12px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 1.1rem;
-            margin: 1rem 0;
-            display: inline-block;
+            line-height: 1.5;
+            position: relative;
+            margin: 2rem 0;
         }
-        
-        .quickstart {
-            padding: 60px 0;
-            background: #f8f9fa;
+
+        .copy-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
         }
-        
-        .code-examples {
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Quick Start */
+        .quick-start {
+            background: var(--secondary-color);
+        }
+
+        .code-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
             gap: 2rem;
-            margin-top: 2rem;
+            margin-top: 3rem;
         }
-        
-        .code-example {
+
+        .code-card {
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
         }
-        
-        .code-header {
-            background: #dc382d;
+
+        .code-card:hover {
+            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-4px);
+        }
+
+        .code-card-header {
+            background: var(--primary-color);
             color: white;
             padding: 1rem 1.5rem;
             font-weight: 600;
+            font-size: 1.1rem;
         }
-        
-        .code-content {
+
+        .code-card-content {
             padding: 1.5rem;
-            background: #2c3e50;
-            color: #ecf0f1;
-            font-family: 'Monaco', 'Menlo', monospace;
+            background: var(--code-bg);
+            color: var(--code-text);
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 0.9rem;
-            line-height: 1.5;
+            line-height: 1.6;
             overflow-x: auto;
         }
-        
-        .stats {
-            padding: 40px 0;
+
+        /* Features */
+        .features {
             background: white;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid var(--border-color);
         }
-        
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--secondary-color);
+            padding: 2.5rem;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-color);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Stats */
+        .stats {
+            background: var(--secondary-color);
+        }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .stat-item {
             text-align: center;
         }
-        
+
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 800;
-            color: #dc382d;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
         }
-        
+
         .stat-label {
-            color: #7f8c8d;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
             font-weight: 500;
         }
-        
-        footer {
-            background: #2c3e50;
+
+        /* Footer */
+        .footer {
+            background: var(--text-primary);
             color: white;
+            padding: 60px 0 40px;
             text-align: center;
-            padding: 40px 0;
         }
-        
-        .footer-links {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+            text-align: left;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
             margin-bottom: 1rem;
-        }
-        
-        .footer-links a {
             color: white;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
-            opacity: 0.8;
+            transition: color 0.2s ease;
         }
-        
-        .footer-links a:hover {
-            opacity: 1;
+
+        .footer-section a:hover {
+            color: white;
         }
-        
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .hero-title { font-size: 2rem; }
-            .hero-subtitle { font-size: 1.2rem; }
-            .code-examples { grid-template-columns: 1fr; }
-            .features-grid { grid-template-columns: 1fr; }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .code-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+            
+            .container {
+                padding: 0 16px;
+            }
+            
+            .section {
+                padding: 60px 0;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
+    <!-- Hero Section -->
+    <section class="hero">
         <div class="container">
-            <h1 class="hero-title">Redis Stream Queue</h1>
-            <p class="hero-subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
+            <h1>Redis Stream Queue</h1>
+            <p class="subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
             <div class="hero-buttons">
-                <a href="https://github.com/Tinywan/redis-stream" class="btn btn-primary">
-                    GitHub
-                </a>
-                <a href="https://packagist.org/packages/tinywan/redis-stream" class="btn btn-secondary">
-                    安装
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <section class="stats">
-        <div class="container">
-            <div class="stats-grid">
-                <div>
-                    <div class="stat-number">1,027+</div>
-                    <div class="stat-label">下载量</div>
-                </div>
-                <div>
-                    <div class="stat-number">57</div>
-                    <div class="stat-label">单元测试</div>
-                </div>
-                <div>
-                    <div class="stat-number">12</div>
-                    <div class="stat-label">集成测试</div>
-                </div>
-                <div>
-                    <div class="stat-number">69</div>
-                    <div class="stat-label">总计测试</div>
-                </div>
+                <a href="#quick-install" class="btn btn-primary">快速开始</a>
+                <a href="https://github.com/Tinywan/redis-stream" class="btn btn-secondary">查看文档</a>
             </div>
         </div>
     </section>
 
-    <section class="features">
+    <!-- Quick Install Section -->
+    <section id="quick-install" class="section quick-install">
         <div class="container">
-            <h2 class="section-title">核心特性</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3 class="feature-title">超高性能</h3>
-                    <p class="feature-description">基于 Redis 5.0+ Stream 数据结构，性能卓越，支持高并发消息处理</p>
+            <h2 class="section-title">1. 快速安装</h2>
+            <div class="install-container">
+                <p class="install-description">使用 Composer 一键安装 Redis Stream Queue</p>
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyCode()">复制</button>
+                    composer require tinywan/redis-stream
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔄</div>
-                    <h3 class="feature-title">多生产者/消费者</h3>
-                    <p class="feature-description">支持多个生产者和消费者同时工作，提供完整的消费者组管理</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💾</div>
-                    <h3 class="feature-title">消息持久化</h3>
-                    <p class="feature-description">可靠的消息持久化存储，确保数据不丢失，支持断点续传</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">✅</div>
-                    <h3 class="feature-title">ACK 确认机制</h3>
-                    <p class="feature-description">完善的消息确认机制，保证消息可靠投递和处理</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔄</div>
-                    <h3 class="feature-title">智能重试</h3>
-                    <p class="feature-description">内置消息重试机制，自动处理失败消息，提高系统可靠性</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⏰</div>
-                    <h3 class="feature-title">延时消息</h3>
-                    <p class="feature-description">支持延时消息和定时消息，提供灵活的时间控制策略</p>
-                </div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    要求 PHP 7.4+ 和 Redis 扩展
+                </p>
             </div>
         </div>
     </section>
 
-    <section class="installation">
+    <!-- Quick Start Section -->
+    <section id="quick-start" class="section quick-start">
         <div class="container">
-            <h2 class="section-title">快速安装</h2>
-            <p>使用 Composer 一键安装</p>
-            <div class="install-code">composer require tinywan/redis-stream</div>
-            <p>要求 PHP 7.4+ 和 Redis 扩展</p>
-        </div>
-    </section>
-
-    <section class="quickstart">
-        <div class="container">
-            <h2 class="section-title">快速开始</h2>
-            <div class="code-examples">
-                <div class="code-example">
-                    <div class="code-header">生产者示例</div>
-                    <div class="code-content">// 创建队列实例
+            <h2 class="section-title">2. 快速开始</h2>
+            <div class="code-grid">
+                <div class="code-card">
+                    <div class="code-card-header">📤 生产者示例</div>
+                    <div class="code-card-content">// 创建队列实例
 $redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
 $queueConfig = [
     'stream_name' => 'my_queue',
@@ -343,14 +419,19 @@ $messageId = $queue->send([
     'email' => 'user@example.com'
 ]);</div>
                 </div>
-                <div class="code-example">
-                    <div class="code-header">消费者示例</div>
-                    <div class="code-content">// 消费消息
-$message = $queue->consume(function($message) {
+                <div class="code-card">
+                    <div class="code-card-header">📥 消费者示例</div>
+                    <div class="code-card-content">// 创建消费者实例
+$consumer = new Consumer($queue);
+
+// 消费消息
+$message = $consumer->consume(function($message) {
     // 处理消息
     echo "Processing: " . $message['type'] . "\n";
     
     // 业务逻辑处理
+    // ...
+    
     return true; // 成功处理
 });
 
@@ -362,15 +443,162 @@ if ($message) {
         </div>
     </section>
 
-    <footer>
+    <!-- Features Section -->
+    <section id="features" class="section features">
         <div class="container">
-            <div class="footer-links">
-                <a href="https://github.com/Tinywan/redis-stream">GitHub 仓库</a>
-                <a href="https://packagist.org/packages/tinywan/redis-stream">Packagist</a>
-                <a href="https://github.com/Tinywan/redis-stream/issues">问题反馈</a>
+            <h2 class="section-title">3. 核心特性</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <h3 class="feature-title">超高性能</h3>
+                    <p class="feature-description">基于 Redis 5.0+ Stream 数据结构，性能卓越，支持高并发消息处理</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔄</span>
+                    <h3 class="feature-title">多生产者/消费者</h3>
+                    <p class="feature-description">支持多个生产者和消费者同时工作，提供完整的消费者组管理</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">💾</span>
+                    <h3 class="feature-title">消息持久化</h3>
+                    <p class="feature-description">可靠的消息持久化存储，确保数据不丢失，支持断点续传</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">✅</span>
+                    <h3 class="feature-title">ACK 确认机制</h3>
+                    <p class="feature-description">完善的消息确认机制，保证消息可靠投递和处理</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔄</span>
+                    <h3 class="feature-title">智能重试</h3>
+                    <p class="feature-description">内置消息重试机制，自动处理失败消息，提高系统可靠性</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">⏰</span>
+                    <h3 class="feature-title">延时消息</h3>
+                    <p class="feature-description">支持延时消息和定时消息，提供灵活的时间控制策略</p>
+                </div>
             </div>
-            <p>© 2025 Redis Stream Queue. 基于 Redis Stream 的高性能轻量级消息队列</p>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats" class="section stats">
+        <div class="container">
+            <h2 class="section-title">4. 项目统计</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">1,027+</div>
+                    <div class="stat-label">下载量</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">57</div>
+                    <div class="stat-label">单元测试</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">集成测试</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">69</div>
+                    <div class="stat-label">总计测试</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>项目信息</h4>
+                    <ul>
+                        <li>版本: 1.0.0</li>
+                        <li>许可证: MIT</li>
+                        <li>作者: Tinywan</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul>
+                        <li><a href="https://github.com/Tinywan/redis-stream">GitHub 仓库</a></li>
+                        <li><a href="https://packagist.org/packages/tinywan/redis-stream">Packagist</a></li>
+                        <li><a href="https://github.com/Tinywan/redis-stream/issues">问题反馈</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>文档</h4>
+                    <ul>
+                        <li><a href="#quick-install">快速安装</a></li>
+                        <li><a href="#quick-start">快速开始</a></li>
+                        <li><a href="#features">核心特性</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Redis Stream Queue. 基于 Redis Stream 的高性能轻量级消息队列</p>
+            </div>
         </div>
     </footer>
+
+    <script>
+        function copyCode() {
+            const codeText = 'composer require tinywan/redis-stream';
+            navigator.clipboard.writeText(codeText).then(() => {
+                const button = document.querySelector('.copy-button');
+                const originalText = button.textContent;
+                button.textContent = '已复制!';
+                button.style.background = 'rgba(16, 185, 129, 0.2)';
+                button.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = 'rgba(255, 255, 255, 0.1)';
+                    button.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                }, 2000);
+            });
+        }
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 观察所有卡片
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.feature-card, .code-card, .stat-item');
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
 </body>
 </html>
