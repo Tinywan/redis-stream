@@ -341,7 +341,7 @@
         .hero h1 {
             font-size: clamp(3.5rem, 8vw, 6rem);
             font-weight: 800;
-            margin-bottom: 2rem;
+            margin-bottom: clamp(1.5rem, 3vh, 3rem);
             background: var(--redis-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -352,7 +352,7 @@
         .subtitle-wrapper {
             display: inline-block;
             position: relative;
-            margin-bottom: 2rem;
+            margin-bottom: clamp(1.5rem, 4vh, 3.5rem);
             transform-style: preserve-3d;
             perspective: 1000px;
             animation: subtitleFloat 4s ease-in-out infinite;
@@ -448,9 +448,10 @@
 
         .hero-buttons {
             display: flex;
-            gap: 1rem;
+            gap: clamp(0.8rem, 1.5vw, 1.5rem);
             justify-content: center;
             flex-wrap: wrap;
+            margin-top: clamp(1rem, 2vh, 2rem);
             animation: fadeInUp 0.8s ease-out 0.4s both;
         }
 
@@ -458,12 +459,12 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 1rem 2rem;
+            padding: clamp(0.8rem, 1.2vw, 1.2rem) clamp(1.5rem, 2.5vw, 2.5rem);
             border: none;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 1.2vw, 1.1rem);
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
@@ -854,10 +855,25 @@
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: clamp(2.5rem, 6vw, 3.5rem);
+                margin-bottom: 1.5rem;
             }
             
             .hero .subtitle {
                 font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            }
+            
+            .subtitle-wrapper {
+                margin-bottom: 2rem;
+            }
+            
+            .hero-buttons {
+                gap: 0.8rem;
+                margin-top: 1.5rem;
+            }
+            
+            .btn {
+                padding: 0.8rem 1.8rem;
+                font-size: 0.9rem;
             }
             
             .code-grid {
