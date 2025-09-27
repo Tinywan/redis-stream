@@ -1,0 +1,77 @@
+name: Generate Main Page
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    # 每天早上8点运行（北京时间）
+    - cron: '0 0 * * *'
+
+jobs:
+  generate-main-page:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: redis, json
+        coverage: none
+        
+    - name: Install dependencies
+      run: composer install --no-dev --prefer-dist --no-progress --no-scripts
+      
+    - name: Install test dependencies
+      run: composer install --prefer-dist --no-progress --no-scripts
+      
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.5.0
+      with:
+        redis-version: '7.0'
+        
+    - name: Run tests
+      run: |
+        php vendor/bin/phpunit --version
+        php tests/queue-test-suite.php
+        
+    - name: Generate main page
+      run: |
+        # 创建pages目录
+        mkdir -p pages
+        
+        # 生成主页
+        php .github/scripts/generate-main-page.php > pages/index.html
+        
+        # 复制测试报告
+        cp tests/queue_test_report_*.html pages/ 2>/dev/null || true
+        
+        # 复制样式文件
+        cp .github/styles/main.css pages/assets/ 2>/dev/null || mkdir -p pages/assets && cp .github/styles/main.css pages/assets/
+        
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifacts
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: pages
+        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
