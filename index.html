@@ -210,6 +210,32 @@
             overflow-x: auto;
         }
 
+        /* 代码高亮样式 */
+        .code-card-content .keyword {
+            color: #ff79c6;
+        }
+
+        .code-card-content .string {
+            color: #f1fa8c;
+        }
+
+        .code-card-content .number {
+            color: #bd93f9;
+        }
+
+        .code-card-content .comment {
+            color: #6272a4;
+            font-style: italic;
+        }
+
+        .code-card-content .function {
+            color: #50fa7b;
+        }
+
+        .code-card-content .variable {
+            color: #8be9fd;
+        }
+
         /* Features */
         .features {
             background: white;
@@ -399,44 +425,44 @@
             <div class="code-grid">
                 <div class="code-card">
                     <div class="code-card-header">📤 生产者示例</div>
-                    <div class="code-card-content">// 创建队列实例
-$redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
-$queueConfig = [
-    'stream_name' => 'my_queue',
-    'consumer_group' => 'my_group'
+                    <div class="code-card-content"><span class="comment">// 创建队列实例</span>
+<span class="variable">$redisConfig</span> = [<span class="string">'host'</span> => <span class="string">'127.0.0.1'</span>, <span class="string">'port'</span> => <span class="number">6379</span>];
+<span class="variable">$queueConfig</span> = [
+    <span class="string">'stream_name'</span> => <span class="string">'my_queue'</span>,
+    <span class="string">'consumer_group'</span> => <span class="string">'my_group'</span>
 ];
 
-$queue = RedisStreamQueue::getInstance(
-    $redisConfig, 
-    $queueConfig, 
-    $logger
+<span class="variable">$queue</span> = <span class="function">RedisStreamQueue::getInstance</span>(
+    <span class="variable">$redisConfig</span>, 
+    <span class="variable">$queueConfig</span>, 
+    <span class="variable">$logger</span>
 );
 
-// 发送消息
-$messageId = $queue->send([
-    'type' => 'user_registered',
-    'user_id' => 123,
-    'email' => 'user@example.com'
+<span class="comment">// 发送消息</span>
+<span class="variable">$messageId</span> = <span class="variable">$queue</span>-><span class="function">send</span>([
+    <span class="string">'type'</span> => <span class="string">'user_registered'</span>,
+    <span class="string">'user_id'</span> => <span class="number">123</span>,
+    <span class="string">'email'</span> => <span class="string">'user@example.com'</span>
 ]);</div>
                 </div>
                 <div class="code-card">
                     <div class="code-card-header">📥 消费者示例</div>
-                    <div class="code-card-content">// 创建消费者实例
-$consumer = new Consumer($queue);
+                    <div class="code-card-content"><span class="comment">// 创建消费者实例</span>
+<span class="variable">$consumer</span> = <span class="keyword">new</span> <span class="function">Consumer</span>(<span class="variable">$queue</span>);
 
-// 消费消息
-$message = $consumer->consume(function($message) {
-    // 处理消息
-    echo "Processing: " . $message['type'] . "\n";
+<span class="comment">// 消费消息</span>
+<span class="variable">$message</span> = <span class="variable">$consumer</span>-><span class="function">consume</span>(<span class="keyword">function</span>(<span class="variable">$message</span>) {
+    <span class="comment">// 处理消息</span>
+    <span class="keyword">echo</span> <span class="string">"Processing: "</span> . <span class="variable">$message</span>[<span class="string">'type'</span>] . <span class="string">"\n"</span>;
     
-    // 业务逻辑处理
-    // ...
+    <span class="comment">// 业务逻辑处理</span>
+    <span class="comment">// ...</span>
     
-    return true; // 成功处理
+    <span class="keyword">return</span> <span class="keyword">true</span>; <span class="comment">// 成功处理</span>
 });
 
-if ($message) {
-    echo "Message processed: " . $message['id'] . "\n";
+<span class="keyword">if</span> (<span class="variable">$message</span>) {
+    <span class="keyword">echo</span> <span class="string">"Message processed: "</span> . <span class="variable">$message</span>[<span class="string">'id'</span>] . <span class="string">"\n"</span>;
 }</div>
                 </div>
             </div>
@@ -482,31 +508,7 @@ if ($message) {
         </div>
     </section>
 
-    <!-- Stats Section -->
-    <section id="stats" class="section stats">
-        <div class="container">
-            <h2 class="section-title">4. 项目统计</h2>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number">1,027+</div>
-                    <div class="stat-label">下载量</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">57</div>
-                    <div class="stat-label">单元测试</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">12</div>
-                    <div class="stat-label">集成测试</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">69</div>
-                    <div class="stat-label">总计测试</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
+  
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
