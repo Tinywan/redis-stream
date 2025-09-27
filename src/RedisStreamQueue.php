@@ -289,17 +289,28 @@ class RedisStreamQueue
      * 如果回调函数返回 true，则自动确认消息
      * 
      * @param callable|null $callback 消息处理回调函数，接收消息数据作为参数
+     * @param string|null $lastid 消息ID位置：
+     *                            - '>' (默认): 只读取新消息
+     *                            - '0-0': 从开始读取所有消息
+     *                            - '0': 从开始读取所有消息
+     *                            - '$': 从最后一条消息之后读取
+     *                            - 具体消息ID: 从指定ID之后读取
      * @return array|null 返回消息数据，如果没有消息则返回 null
      * @throws RedisStreamException 当消息消费失败时抛出异常
      */
-    public function consume(?callable $callback = null): ?array
+    public function consume(?callable $callback = null, ?string $lastid = null): ?array
     {
         try {
+            // 默认使用 '>' 只读取新消息
+            if ($lastid === null) {
+                $lastid = '>';
+            }
+            
             // 从消费者组中读取消息
             $messages = $this->redis->xReadGroup(
                 $this->consumerGroup,          // 消费者组
                 $this->consumerName,           // 消费者名称
-                [$this->streamName => '>'],    // 从新消息开始读取
+                [$this->streamName => $lastid], // 指定消息位置
                 1,                             // 每次读取一条消息
                 $this->queueConfig['block_timeout'] // 阻塞超时时间
             );
@@ -310,7 +321,17 @@ class RedisStreamQueue
             }
 
             // 处理消息数据
-            $messageData = $this->processMessage($messages[$this->streamName]);
+            try {
+                $messageData = $this->processMessage($messages[$this->streamName]);
+            } catch (RedisStreamException $e) {
+                // 如果没有有效消息，对于特定的 lastid 值返回 null
+                if ($lastid === '0-0' || $lastid === '0' || $lastid === '$' || strpos($lastid, '-') !== false) {
+                    $this->logger->info('No valid messages found for lastid: ' . $lastid);
+                    return null;
+                }
+                // 其他情况重新抛出异常
+                throw $e;
+            }
             
             // 如果提供了回调函数，执行处理逻辑
             if ($callback !== null) {
@@ -950,5 +971,188 @@ class RedisStreamQueue
             $this->logger->error('Scheduler crashed', ['error' => $e->getMessage()]);
             throw new RedisStreamException('Scheduler crashed: ' . $e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * 重新处理所有消息 (0-0 模式)
+     * 
+     * 从流的开始位置读取所有消息，包括已被其他消费者处理的消息
+     * 主要用于数据恢复、审计、调试等特殊场景
+     * 
+     * @param callable $callback 消息处理回调函数
+     * @param int $maxMessages 最大处理消息数量，0 表示处理所有消息
+     * @param bool $autoAck 是否自动确认消息，默认为 true
+     * @return int 处理的消息数量
+     * @throws RedisStreamException 当处理失败时抛出异常
+     */
+    public function replayMessages(callable $callback, int $maxMessages = 0, bool $autoAck = true): int
+    {
+        try {
+            $processedCount = 0;
+            $this->logger->info('Starting replay messages', [
+                'max_messages' => $maxMessages,
+                'auto_ack' => $autoAck,
+                'consumer' => $this->consumerName
+            ]);
+
+            // 使用 XRANGE 读取所有消息，不受消费者组状态影响
+            $messages = $this->redis->xRange($this->streamName, '-', '+', $maxMessages > 0 ? $maxMessages : 1000);
+            
+            foreach ($messages as $messageId => $data) {
+                // 检查最大消息数量限制
+                if ($maxMessages > 0 && $processedCount >= $maxMessages) {
+                    break;
+                }
+
+                // 构造与 consume() 相同的消息格式
+                $messageData = array_merge($data, [
+                    'id' => $messageId,
+                    'attempts' => isset($data['attempts']) ? (int)$data['attempts'] : 0,
+                ]);
+
+                $this->logger->info('Replaying message', [
+                    'message_id' => $messageId,
+                    'attempts' => $messageData['attempts'],
+                    'original_status' => $messageData['status'] ?? 'unknown'
+                ]);
+
+                try {
+                    // 执行用户回调
+                    $result = $callback($messageData);
+                    $processedCount++;
+                    
+                    // 根据参数决定是否自动确认
+                    if ($autoAck && ($result === true || $result === null)) {
+                        // 尝试确认消息（如果消息仍在待处理状态）
+                        try {
+                            $this->ack($messageId);
+                        } catch (RedisStreamException $e) {
+                            // 如果消息不在待处理状态，记录日志但不中断处理
+                            $this->logger->info('Message not in pending state, skipping ack', [
+                                'message_id' => $messageId,
+                                'reason' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                    
+                    // 如果回调返回 false，停止处理
+                    if ($result === false) {
+                        $this->logger->info('Replay stopped by callback returning false');
+                        break;
+                    }
+                } catch (Throwable $e) {
+                    $this->logger->error('Error replaying message', [
+                        'message_id' => $messageId,
+                        'error' => $e->getMessage()
+                    ]);
+                    // 回调异常时不中断继续处理其他消息
+                    continue;
+                }
+            }
+
+            $this->logger->info('Replay messages completed', [
+                'processed_count' => $processedCount,
+                'total_messages' => count($messages)
+            ]);
+
+            return $processedCount;
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to replay messages', [
+                'error' => $e->getMessage(),
+                'max_messages' => $maxMessages,
+                'auto_ack' => $autoAck
+            ]);
+            throw new RedisStreamException('Failed to replay messages: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * 审计所有消息 (只读模式)
+     * 
+     * 从流的开始位置读取所有消息但不修改其状态
+     * 主要用于审计、调试和数据分析
+     * 
+     * @param callable $callback 审计回调函数，接收消息数据
+     * @param int $maxMessages 最大审计消息数量，0 表示审计所有消息
+     * @return int 审计的消息数量
+     * @throws RedisStreamException 当审计失败时抛出异常
+     */
+    public function auditMessages(callable $callback, int $maxMessages = 0): int
+    {
+        try {
+            $auditCount = 0;
+            $this->logger->info('Starting audit messages', [
+                'max_messages' => $maxMessages,
+                'consumer' => $this->consumerName
+            ]);
+
+            // 直接使用 XRANGE 而不是 XREADGROUP，避免影响消息状态
+            $messages = $this->redis->xRange($this->streamName, '-', '+', $maxMessages > 0 ? $maxMessages : 1000);
+            
+            foreach ($messages as $messageId => $data) {
+                // 构造与 consume() 相同的消息格式
+                $messageData = array_merge($data, [
+                    'id' => $messageId,
+                    'attempts' => isset($data['attempts']) ? (int)$data['attempts'] : 0,
+                ]);
+
+                try {
+                    // 执行审计回调
+                    $result = $callback($messageData);
+                    $auditCount++;
+                    
+                    // 检查最大消息数量
+                    if ($maxMessages > 0 && $auditCount >= $maxMessages) {
+                        break;
+                    }
+                    
+                    // 如果回调返回 false，停止审计
+                    if ($result === false) {
+                        break;
+                    }
+                } catch (Throwable $e) {
+                    $this->logger->error('Audit callback error', [
+                        'message_id' => $messageId,
+                        'error' => $e->getMessage()
+                    ]);
+                    // 继续审计下一条消息
+                }
+            }
+
+            $this->logger->info('Audit completed', [
+                'audit_count' => $auditCount,
+                'total_messages' => count($messages)
+            ]);
+
+            return $auditCount;
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to audit messages', ['error' => $e->getMessage()]);
+            throw new RedisStreamException('Failed to audit messages: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * 从指定消息ID开始消费
+     * 
+     * @param string $fromId 起始消息ID
+     * @param callable|null $callback 消息处理回调函数
+     * @return array|null 返回消息数据，如果没有消息则返回 null
+     * @throws RedisStreamException 当消费失败时抛出异常
+     */
+    public function consumeFrom(string $fromId, ?callable $callback = null): ?array
+    {
+        return $this->consume($callback, $fromId);
+    }
+
+    /**
+     * 消费最后一条消息之后的新消息
+     * 
+     * @param callable|null $callback 消息处理回调函数
+     * @return array|null 返回消息数据，如果没有消息则返回 null
+     * @throws RedisStreamException 当消费失败时抛出异常
+     */
+    public function consumeLatest(?callable $callback = null): ?array
+    {
+        return $this->consume($callback, '$');
     }
 }

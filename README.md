@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/packagist/l/tinywan/redis-stream.svg?style=flat-square)](https://packagist.org/packages/tinywan/redis-stream)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D7.4-blue.svg)](https://www.php.net)
 [![Redis Version](https://img.shields.io/badge/redis-%3E%3D5.0-red.svg)](https://redis.io)
-[![Tests](https://img.shields.io/badge/tests-81%20passing-brightgreen.svg)](https://github.com/Tinywan/redis-stream/actions)
+[![Tests](https://img.shields.io/badge/tests-96%20passing-brightgreen.svg)](https://github.com/Tinywan/redis-stream/actions)
 
 > 🚀 一个基于 Redis Stream 的高性能轻量级消息队列，支持单例模式、连接池管理和延时消息功能。
 
@@ -17,7 +17,10 @@
 - ✅ **ACK 确认机制** - 完善的消息确认机制，保证消息可靠投递
 - 🔄 **智能重试** - 内置消息重试机制，自动处理失败消息
 - ⏰ **延时消息** - 支持延时消息和定时消息，灵活的时间控制
-- 🧪 **完整测试** - 完整的 PHPUnit 测试套件（81个测试，289个断言）
+- 🔄 **消息重放** - 支持重新处理历史消息，包括已确认的消息
+- 🔍 **消息审计** - 提供只读模式审计所有消息，不影响消息状态
+- 🎯 **灵活消费** - 支持指定位置消费，满足不同业务场景
+- 🧪 **完整测试** - 完整的 PHPUnit 测试套件（96个测试，258个断言）
 - 📝 **PSR-3 日志** - 标准 PSR-3 日志接口，完美集成 Monolog
 - 🏗️ **单例模式** - 单例模式支持，避免重复创建实例
 - 🏊 **连接池管理** - Redis 连接池，自动连接复用和管理
@@ -85,6 +88,11 @@ $message = $queue->consume(function($message) {
 if ($message) {
     echo "成功消费消息: " . $message['id'] . "\n";
 }
+
+// 使用不同的 lastid 模式消费
+$message = $queue->consume(null, '0-0'); // 从头开始读取所有消息
+$message = $queue->consume(null, '$');    // 读取最新消息之后的消息
+$message = $queue->consume(null, '1758943564547-0'); // 从指定消息ID开始读取
 ```
 
 ### 运行示例
@@ -117,6 +125,68 @@ php message-handler.php demo
 # 查看队列状态
 php message-handler.php status
 ```
+
+$lastid 模式演示：
+
+```bash
+# 演示不同的 $lastid 参数使用
+php examples/lastid-demo.php
+
+# 详细分析 $lastid 参数的行为和区别
+php examples/lastid-analysis.php
+```
+
+## 🔄 消息重放与审计
+
+### 消息重放 (replayMessages)
+
+重新处理流中的所有消息，包括已确认的消息：
+
+```php
+// 重新处理所有消息，最多处理10条
+$count = $queue->replayMessages(function($message) {
+    echo "重新处理: " . $message['message'] . "\n";
+    return true; // 确认消息
+}, 10);
+
+echo "重新处理了 {$count} 条消息";
+```
+
+### 消息审计 (auditMessages)
+
+只读模式审计所有消息，不影响消息状态：
+
+```php
+// 审计所有消息，最多审计20条
+$count = $queue->auditMessages(function($message) {
+    echo "审计: " . $message['message'] . " (ID: " . $message['id'] . ")\n";
+    return true; // 继续审计下一条
+}, 20);
+
+echo "审计了 {$count} 条消息";
+```
+
+### 便捷消费方法
+
+```php
+// 从指定消息ID开始消费
+$message = $queue->consumeFrom('1758943564547-0');
+
+// 消费最新消息
+$message = $queue->consumeLatest();
+```
+
+### $lastid 参数说明
+
+Redis Stream 的 `$lastid` 参数控制消息读取的起始位置：
+
+| 参数值 | 说明 | 使用场景 |
+|--------|------|----------|
+| `>` (默认) | 只读取新消息 | 正常消费模式 |
+| `0-0` | 从头开始读取所有消息 | 数据恢复、重新处理 |
+| `0` | 等同于 `0-0` | 同上 |
+| `$` | 读取最后一条消息之后的新消息 | 获取最新消息 |
+| `特定ID` | 从指定消息ID之后开始读取 | 定位消费 |
 
 ## 🧪 运行测试
 

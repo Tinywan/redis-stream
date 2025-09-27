@@ -1,6 +1,6 @@
 ## 项目概述
 
-这是一个基于 Redis Streams 的轻量级 PHP 队列实现，支持多生产者和消费者，具有消息持久化、确认机制、重试机制和可靠投递功能。支持延时消息和指定时间执行。
+这是一个基于 Redis Streams 的轻量级 PHP 队列实现，支持多生产者和消费者，具有消息持久化、确认机制、重试机制和可靠投递功能。支持延时消息、指定时间执行、消息重放和审计功能。
 
 ## 架构设计
 
@@ -33,6 +33,10 @@
 - **Monolog 集成**: 完整的日志记录系统
 - **延时消息**: 支持延时发送和指定时间执行消息
 - **统一API**: 简化的API设计，支持任意长度的延时时间
+- **消息重放**: 支持重新处理历史消息，包括已确认的消息
+- **消息审计**: 提供只读模式审计所有消息，不影响消息状态
+- **灵活消费**: 支持指定位置消费，满足不同业务场景
+- **$lastid 支持**: 支持 Redis Stream 的不同 lastid 参数模式
 
 ## 配置说明
 
@@ -203,6 +207,78 @@ $debugLogger = MonologFactory::createLogger('my-app', true, true);
 - 默认限制：128MB
 - 可通过 `setMemoryLimit()` 配置
 - 超过限制时自动停止
+
+## 新功能：消息重放与审计
+
+### $lastid 参数支持
+
+RedisStreamQueue 的 `consume()` 方法现在支持可选的 `$lastid` 参数，允许指定消息读取的起始位置：
+
+```php
+// 默认行为：只读取新消息
+$message = $queue->consume();
+
+// 从头开始读取所有消息（包括已确认的消息）
+$message = $queue->consume(null, '0-0');
+
+// 读取最后一条消息之后的新消息
+$message = $queue->consume(null, '$');
+
+// 从指定消息ID开始读取
+$message = $queue->consume(null, '1758943564547-0');
+```
+
+### 消息重放功能
+
+`replayMessages()` 方法允许重新处理流中的所有消息，包括已被确认的消息：
+
+```php
+// 重新处理所有消息，最多处理10条，自动确认
+$count = $queue->replayMessages(function($message) {
+    // 处理消息逻辑
+    return true;
+}, 10, true);
+
+// 重新处理但不自动确认
+$count = $queue->replayMessages(function($message) {
+    // 处理消息逻辑
+    return false; // 不确认消息
+}, 10, false);
+```
+
+### 消息审计功能
+
+`auditMessages()` 方法提供只读模式审计所有消息，不影响消息状态：
+
+```php
+// 审计所有消息
+$count = $queue->auditMessages(function($message) {
+    echo "审计消息: " . $message['message'] . "\n";
+    return true; // 继续审计
+}, 20);
+```
+
+### 便捷消费方法
+
+- `consumeFrom($messageId)`: 从指定消息ID开始消费
+- `consumeLatest()`: 消费最新消息
+
+### $lastid 参数说明
+
+| 参数值 | 说明 | 使用场景 |
+|--------|------|----------|
+| `>` (默认) | 只读取消费者组尚未分配的新消息 | 正常消费模式 |
+| `0-0` | 从头开始读取所有消息 | 数据恢复、重新处理 |
+| `0` | 等同于 `0-0` | 同上 |
+| `$` | 读取最后一条消息之后的新消息 | 获取最新消息 |
+| `特定ID` | 从指定消息ID之后开始读取 | 定位消费 |
+
+### 注意事项
+
+- `replayMessages()` 使用 `XRANGE` 读取所有消息，不受消费者组状态影响
+- `auditMessages()` 是只读操作，不会影响消息状态
+- 在消费者组中，`'0-0'` 模式可能无法读取到已被确认的消息
+- 根据业务场景选择合适的消费模式
 
 ## 运行测试
 
