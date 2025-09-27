@@ -90,11 +90,15 @@
         /* Hero Section */
         .hero {
             margin-top: 80px;
-            padding: 6rem 0;
+            height: calc(100vh - 80px);
+            min-height: 600px;
             text-align: center;
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, rgba(220, 56, 45, 0.05) 0%, rgba(130, 179, 103, 0.05) 50%, rgba(220, 56, 45, 0.05) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .hero::before {
@@ -584,9 +588,6 @@
         /* 代码行数限制和滚动 */
         .code-card-content {
             max-height: 500px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #555 #2d2d2d;
         }
 
         .code-card-content::-webkit-scrollbar {
@@ -657,11 +658,13 @@
             color: #f8fafc;
             white-space: pre;
             word-break: break-all;
-            overflow: hidden;
+            overflow-y: auto;
             background: #2d2d2d;
             margin: 0;
             flex: 1;
             position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #555 #2d2d2d;
         }
 
         .typing-code {
