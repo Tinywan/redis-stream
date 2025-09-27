@@ -268,39 +268,43 @@
 
         .code-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 3rem;
+            margin-top: 2rem;
         }
 
         .code-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
+            background: #0f172a;
+            border: 2px solid #1e293b;
+            border-radius: 20px;
             overflow: hidden;
             transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
         .code-card:hover {
             border-color: var(--primary-color);
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.2);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 102, 255, 0.3);
         }
 
         .code-card-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 1.5rem;
-            font-weight: 600;
-            font-size: 1.1rem;
+            padding: 2rem;
+            font-weight: 700;
+            font-size: 1.4rem;
             text-align: center;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         .code-card-content {
-            padding: 2rem;
+            padding: 3rem;
             font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
-            font-size: 1rem;
-            line-height: 1.8;
-            color: #e2e8f0;
+            font-size: 1.3rem;
+            line-height: 2.2;
+            color: #f8fafc;
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
@@ -319,12 +323,12 @@
         }
 
         .typing-code {
-            color: #e2e8f0;
+            color: #f8fafc;
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
-            line-height: 1.8;
-            font-size: 1rem;
+            line-height: 2.2;
+            font-size: 1.3rem;
         }
 
         /* PHP 语法高亮 - 深色背景适配 */
