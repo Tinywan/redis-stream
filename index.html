@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Stream Queue - 基于 Redis Stream 的高性能轻量级消息队列</title>
+    <meta name="description" content="基于 Redis Stream 的高性能轻量级消息队列">
+    <link rel="stylesheet" href="assets/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <i class="fas fa-rocket"></i>
+                    Redis Stream Queue                </h1>
+                <p class="hero-description">基于 Redis Stream 的高性能轻量级消息队列</p>
+                <div class="hero-actions">
+                    <a href="https://github.com/Tinywan/redis-stream#readme" class="btn btn-primary">
+                        <i class="fas fa-book"></i> 文档
+                    </a>
+                    <a href="https://packagist.org/packages/tinywan/redis-stream" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> 安装
+                    </a>
+                    <a href="https://github.com/Tinywan/redis-stream" class="btn btn-github">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                </div>
+            </div>
+            <div class="hero-waves"></div>
+        </header>
+
+        <!-- Stats Section -->
+        <section class="stats">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">1,027+</h3>
+                        <p class="stat-label">下载量</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">113+</h3>
+                        <p class="stat-label">Stars</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-vial"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">0</h3>
+                        <p class="stat-label">测试用例</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">0%</h3>
+                        <p class="stat-label">通过率</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features">
+            <h2 class="section-title">核心特性</h2>
+            <div class="features-grid">
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            ⚡ 超高性能 - 基于 Redis 5.0+ Stream 数据结构                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🔄 多生产者/消费者 - 支持多个生产者和消费者同时工作                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            💾 消息持久化 - 可靠的消息持久化存储，确保数据不丢失                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            ✅ ACK 确认机制 - 完善的消息确认机制，保证消息可靠投递                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🔄 智能重试 - 内置消息重试机制，自动处理失败消息                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            ⏰ 延时消息 - 支持延时消息和定时消息，灵活的时间控制                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🔄 消息重放 - 支持重新处理历史消息，包括已确认的消息                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🔍 消息审计 - 提供只读模式审计所有消息，不影响消息状态                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🎯 灵活消费 - 支持指定位置消费，满足不同业务场景                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🧪 完整测试 - 完整的 PHPUnit 测试套件                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            📝 PSR-3 日志 - 标准 PSR-3 日志接口，完美集成 Monolog                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🏗️ 单例模式 - 单例模式支持，避免重复创建实例                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🏊 连接池管理 - Redis 连接池，自动连接复用和管理                        </div>
+                    </div>
+                                    <div class="feature-card">
+                        <div class="feature-content">
+                            🔧 简单配置 - 提供合理的默认配置，开箱即用                        </div>
+                    </div>
+                            </div>
+        </section>
+
+        <!-- Test Results Section -->
+        
+        <!-- Installation Section -->
+        <section class="installation">
+            <h2 class="section-title">快速安装</h2>
+            <div class="installation-content">
+                <pre><code class="language-bash">composer require tinywan/redis-stream</code></pre>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section class="quickstart">
+            <h2 class="section-title">快速开始</h2>
+            <div class="code-examples">
+                <div class="code-example">
+                    <h3>生产者示例</h3>
+                    <pre><code class="language-php">// 创建队列实例
+$queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
+
+// 发送消息
+$messageId = $queue->send([
+    'type' => 'user_registered',
+    'user_id' => 123,
+    'email' => 'user@example.com',
+    'timestamp' => time()
+]);
+
+echo "消息已发送，ID: " . $messageId;</code></pre>
+                </div>
+                
+                <div class="code-example">
+                    <h3>消费者示例</h3>
+                    <pre><code class="language-php">// 消费消息
+$message = $queue->consume(function($message) {
+    // 处理消息
+    echo "处理消息: " . $message['type'] . "\n";
+    
+    // 业务逻辑处理...
+    
+    return true; // 确认消息
+});
+
+if ($message) {
+    echo "消息处理完成\n";
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>项目信息</h4>
+                    <p>版本: 1.0.0</p>
+                    <p>许可证: MIT</p>
+                    <p>作者: Tinywan</p>
+                </div>
+                <div class="footer-section">
+                    <h4>链接</h4>
+                    <p><a href="https://github.com/Tinywan/redis-stream">GitHub</a></p>
+                    <p><a href="https://packagist.org/packages/tinywan/redis-stream">Packagist</a></p>
+                    <p><a href="https://github.com/Tinywan/redis-stream#readme">文档</a></p>
+                </div>
+                <div class="footer-section">
+                    <h4>最后更新</h4>
+                    <p>2025-09-27 10:12:12</p>
+                    <p>由 GitHub Actions 自动生成</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Redis Stream Queue. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script>
+        // 添加交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 平滑滚动
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // 动画效果
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // 观察所有卡片
+            document.querySelectorAll('.feature-card, .stat-card, .code-example').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
