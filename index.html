@@ -3,259 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redis Stream Queue - 基于 Redis Stream 的高性能轻量级消息队列</title>
-    <meta name="description" content="基于 Redis Stream 的高性能轻量级消息队列">
-    <link rel="stylesheet" href="assets/main.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <title>Redis Stream Queue - 高性能消息队列</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --redis-red: #dc382d;
+            --redis-red-dark: #c7362c;
+            --redis-red-light: #ff4757;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --bg-light: #f8f9fa;
+            --border-color: #e9ecef;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--redis-red) 0%, var(--redis-red-dark) 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--redis-red);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--redis-red);
+        }
+
+        /* Features Grid */
+        .features {
+            padding: 80px 0;
+            background: var(--bg-light);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--redis-red);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Installation */
+        .installation {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .install-content {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .install-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .install-code {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+            display: inline-block;
+        }
+
+        /* Quick Start */
+        .quickstart {
+            padding: 80px 0;
+            background: var(--bg-light);
+        }
+
+        .code-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .code-example {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .code-header {
+            background: var(--redis-red);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .code-content {
+            padding: 1.5rem;
+            background: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        /* Stats */
+        .stats {
+            padding: 60px 0;
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--redis-red);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--text-primary);
+            color: white;
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .code-examples {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="hero">
+    <!-- Header -->
+    <header>
+        <div class="container">
             <div class="hero-content">
-                <h1 class="hero-title">
-                    <i class="fas fa-rocket"></i>
-                    Redis Stream Queue                </h1>
-                <p class="hero-description">基于 Redis Stream 的高性能轻量级消息队列</p>
-                <div class="hero-actions">
-                    <a href="https://github.com/Tinywan/redis-stream#readme" class="btn btn-primary">
-                        <i class="fas fa-book"></i> 文档
+                <h1 class="hero-title">Redis Stream Queue</h1>
+                <p class="hero-subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
+                <div class="hero-buttons">
+                    <a href="https://github.com/Tinywan/redis-stream" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        GitHub
                     </a>
                     <a href="https://packagist.org/packages/tinywan/redis-stream" class="btn btn-secondary">
-                        <i class="fas fa-download"></i> 安装
-                    </a>
-                    <a href="https://github.com/Tinywan/redis-stream" class="btn btn-github">
-                        <i class="fab fa-github"></i> GitHub
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.514 0 10 4.486 10 10s-4.486 10-10 10S2 17.514 2 12 6.486 2 12 2zm0 2c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm0 2c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/>
+                        </svg>
+                        安装
                     </a>
                 </div>
             </div>
-            <div class="hero-waves"></div>
-        </header>
+        </div>
+    </header>
 
-        <!-- Stats Section -->
-        <section class="stats">
+    <!-- Stats -->
+    <section class="stats">
+        <div class="container">
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-download"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number">1,027+</h3>
-                        <p class="stat-label">下载量</p>
-                    </div>
+                <div>
+                    <div class="stat-number">1,027+</div>
+                    <div class="stat-label">下载量</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number">113+</h3>
-                        <p class="stat-label">Stars</p>
-                    </div>
+                <div>
+                    <div class="stat-number">57</div>
+                    <div class="stat-label">单元测试</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-vial"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number">0</h3>
-                        <p class="stat-label">测试用例</p>
-                    </div>
+                <div>
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">集成测试</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number">0%</h3>
-                        <p class="stat-label">通过率</p>
-                    </div>
+                <div>
+                    <div class="stat-number">69</div>
+                    <div class="stat-label">总计测试</div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Features Section -->
-        <section class="features">
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
             <h2 class="section-title">核心特性</h2>
             <div class="features-grid">
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            ⚡ 超高性能 - 基于 Redis 5.0+ Stream 数据结构                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🔄 多生产者/消费者 - 支持多个生产者和消费者同时工作                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            💾 消息持久化 - 可靠的消息持久化存储，确保数据不丢失                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            ✅ ACK 确认机制 - 完善的消息确认机制，保证消息可靠投递                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🔄 智能重试 - 内置消息重试机制，自动处理失败消息                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            ⏰ 延时消息 - 支持延时消息和定时消息，灵活的时间控制                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🔄 消息重放 - 支持重新处理历史消息，包括已确认的消息                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🔍 消息审计 - 提供只读模式审计所有消息，不影响消息状态                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🎯 灵活消费 - 支持指定位置消费，满足不同业务场景                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🧪 完整测试 - 完整的 PHPUnit 测试套件                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            📝 PSR-3 日志 - 标准 PSR-3 日志接口，完美集成 Monolog                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🏗️ 单例模式 - 单例模式支持，避免重复创建实例                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🏊 连接池管理 - Redis 连接池，自动连接复用和管理                        </div>
-                    </div>
-                                    <div class="feature-card">
-                        <div class="feature-content">
-                            🔧 简单配置 - 提供合理的默认配置，开箱即用                        </div>
-                    </div>
-                            </div>
-        </section>
-
-        <!-- Test Results Section -->
-        
-        <!-- Installation Section -->
-        <section class="installation">
-            <h2 class="section-title">快速安装</h2>
-            <div class="installation-content">
-                <pre><code class="language-bash">composer require tinywan/redis-stream</code></pre>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">超高性能</h3>
+                    <p class="feature-description">基于 Redis 5.0+ Stream 数据结构，性能卓越，支持高并发消息处理</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">多生产者/消费者</h3>
+                    <p class="feature-description">支持多个生产者和消费者同时工作，提供完整的消费者组管理</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3 class="feature-title">消息持久化</h3>
+                    <p class="feature-description">可靠的消息持久化存储，确保数据不丢失，支持断点续传</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3 class="feature-title">ACK 确认机制</h3>
+                    <p class="feature-description">完善的消息确认机制，保证消息可靠投递和处理</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">智能重试</h3>
+                    <p class="feature-description">内置消息重试机制，自动处理失败消息，提高系统可靠性</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⏰</div>
+                    <h3 class="feature-title">延时消息</h3>
+                    <p class="feature-description">支持延时消息和定时消息，提供灵活的时间控制策略</p>
+                </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Quick Start Section -->
-        <section class="quickstart">
+    <!-- Installation -->
+    <section class="installation">
+        <div class="container">
+            <h2 class="section-title">快速安装</h2>
+            <div class="install-content">
+                <p class="install-title">使用 Composer 一键安装</p>
+                <div class="install-code">composer require tinywan/redis-stream</div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    要求 PHP 7.4+ 和 Redis 扩展
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="quickstart">
+        <div class="container">
             <h2 class="section-title">快速开始</h2>
             <div class="code-examples">
                 <div class="code-example">
-                    <h3>生产者示例</h3>
-                    <pre><code class="language-php">// 创建队列实例
-$queue = RedisStreamQueue::getInstance($redisConfig, $queueConfig, $logger);
+                    <div class="code-header">📤 生产者示例</div>
+                    <div class="code-content">// 创建队列实例
+$redisConfig = ['host' => '127.0.0.1', 'port' => 6379];
+$queueConfig = [
+    'stream_name' => 'my_queue',
+    'consumer_group' => 'my_group'
+];
+
+$queue = RedisStreamQueue::getInstance(
+    $redisConfig, 
+    $queueConfig, 
+    $logger
+);
 
 // 发送消息
 $messageId = $queue->send([
     'type' => 'user_registered',
     'user_id' => 123,
-    'email' => 'user@example.com',
-    'timestamp' => time()
-]);
-
-echo "消息已发送，ID: " . $messageId;</code></pre>
+    'email' => 'user@example.com'
+]);</div>
                 </div>
-                
                 <div class="code-example">
-                    <h3>消费者示例</h3>
-                    <pre><code class="language-php">// 消费消息
-$message = $queue->consume(function($message) {
+                    <div class="code-header">📥 消费者示例</div>
+                    <div class="code-content">// 创建消费者实例
+$consumer = new Consumer($queue);
+
+// 消费消息
+$message = $consumer->consume(function($message) {
     // 处理消息
-    echo "处理消息: " . $message['type'] . "\n";
+    echo "Processing: " . $message['type'] . "\n";
     
-    // 业务逻辑处理...
+    // 业务逻辑处理
+    // ...
     
-    return true; // 确认消息
+    return true; // 成功处理
 });
 
 if ($message) {
-    echo "消息处理完成\n";
-}</code></pre>
+    echo "Message processed: " . $message['id'] . "\n";
+}</div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>项目信息</h4>
-                    <p>版本: 1.0.0</p>
-                    <p>许可证: MIT</p>
-                    <p>作者: Tinywan</p>
-                </div>
-                <div class="footer-section">
-                    <h4>链接</h4>
-                    <p><a href="https://github.com/Tinywan/redis-stream">GitHub</a></p>
-                    <p><a href="https://packagist.org/packages/tinywan/redis-stream">Packagist</a></p>
-                    <p><a href="https://github.com/Tinywan/redis-stream#readme">文档</a></p>
-                </div>
-                <div class="footer-section">
-                    <h4>最后更新</h4>
-                    <p>2025-09-27 10:12:12</p>
-                    <p>由 GitHub Actions 自动生成</p>
-                </div>
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/Tinywan/redis-stream">GitHub 仓库</a>
+                <a href="https://packagist.org/packages/tinywan/redis-stream">Packagist</a>
+                <a href="https://github.com/Tinywan/redis-stream/issues">问题反馈</a>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Redis Stream Queue. All rights reserved.</p>
-            </div>
-        </footer>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
-    <script>
-        // 添加交互效果
-        document.addEventListener('DOMContentLoaded', function() {
-            // 平滑滚动
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            });
-
-            // 动画效果
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // 观察所有卡片
-            document.querySelectorAll('.feature-card, .stat-card, .code-example').forEach(el => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                observer.observe(el);
-            });
-        });
-    </script>
+            <p style="opacity: 0.8; margin-top: 1rem;">
+                © 2025 Redis Stream Queue. 基于 Redis Stream 的高性能轻量级消息队列
+            </p>
+        </div>
+    </footer>
 </body>
 </html>
