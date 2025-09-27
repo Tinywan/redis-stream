@@ -268,41 +268,43 @@
 
         .code-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 3rem;
+            margin-top: 2rem;
         }
 
         .code-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
+            background: #0f172a;
+            border: 2px solid #1e293b;
+            border-radius: 20px;
             overflow: hidden;
             transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
         .code-card:hover {
             border-color: var(--primary-color);
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.2);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 102, 255, 0.3);
         }
 
         .code-card-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 1.8rem 2rem;
+            padding: 2rem;
             font-weight: 700;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             text-align: center;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
 
         .code-card-content {
-            padding: 2.5rem;
+            padding: 3rem;
             font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
-            font-size: 1.1rem;
-            line-height: 2;
-            color: #e2e8f0;
+            font-size: 1.3rem;
+            line-height: 2.2;
+            color: #f8fafc;
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
@@ -321,12 +323,12 @@
         }
 
         .typing-code {
-            color: #e2e8f0;
+            color: #f8fafc;
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
-            line-height: 1.8;
-            font-size: 1rem;
+            line-height: 2.2;
+            font-size: 1.3rem;
         }
 
         /* PHP 语法高亮 - 深色背景适配 */
@@ -555,11 +557,7 @@
                     <div class="code-card-content"><div class="typing-code"><span class="php-tag">&lt;?php</span>
 
 <span class="php-comment">// 基础配置</span>
-<span class="php-variable">$redisConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span>
-    <span class="php-string">'host'</span> <span class="php-operator">=></span> <span class="php-string">'127.0.0.1'</span><span class="php-operator">,</span>
-    <span class="php-string">'port'</span> <span class="php-operator">=></span> <span class="php-number">6379</span>
-<span class="php-bracket">]</span><span class="php-operator">;</span>
-
+<span class="php-variable">$redisConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span><span class="php-string">'host'</span> <span class="php-operator">=></span> <span class="php-string">'127.0.0.1'</span><span class="php-operator">,</span> <span class="php-string">'port'</span> <span class="php-operator">=></span> <span class="php-number">6379</span><span class="php-bracket">]</span><span class="php-operator">;</span>
 <span class="php-variable">$queueConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span>
     <span class="php-string">'stream_name'</span> <span class="php-operator">=></span> <span class="php-string">'my_queue'</span><span class="php-operator">,</span>
     <span class="php-string">'consumer_group'</span> <span class="php-operator">=></span> <span class="php-string">'my_group'</span>
@@ -567,8 +565,7 @@
 
 <span class="php-comment">// 创建队列实例</span>
 <span class="php-variable">$queue</span> <span class="php-operator">=</span> <span class="php-class">RedisStreamQueue</span><span class="php-operator">::</span><span class="php-method">getInstance</span><span class="php-bracket">(</span>
-    <span class="php-variable">$redisConfig</span><span class="php-operator">,</span>
-    <span class="php-variable">$queueConfig</span><span class="php-operator">,</span>
+    <span class="php-variable">$redisConfig</span><span class="php-operator">,</span> <span class="php-variable">$queueConfig</span><span class="php-operator">,</span> 
     <span class="php-variable">$logger</span>
 <span class="php-bracket">)</span><span class="php-operator">;</span>
 
@@ -588,7 +585,8 @@
 
 <span class="php-comment">// 消费消息</span>
 <span class="php-variable">$message</span> <span class="php-operator">=</span> <span class="php-variable">$consumer</span><span class="php-operator">-></span><span class="php-method">consume</span><span class="php-bracket">(</span><span class="php-keyword">function</span><span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
-    <span class="php-echo">echo</span> <span class="php-string">"Processing: "</span> <span class="php-operator">.</span> <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'type'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
+    <span class="php-echo">echo</span> <span class="php-string">"Processing: "</span> <span class="php-operator">.</span> 
+        <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'type'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
     
     <span class="php-comment">// 业务逻辑处理</span>
     <span class="php-comment">// ...</span>
@@ -597,7 +595,8 @@
 <span class="php-bracket">}</span><span class="php-bracket">)</span><span class="php-operator">;</span>
 
 <span class="php-keyword">if</span> <span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
-    <span class="php-echo">echo</span> <span class="php-string">"Message processed: "</span> <span class="php-operator">.</span> <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'id'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
+    <span class="php-echo">echo</span> <span class="php-string">"Message processed: "</span> <span class="php-operator">.</span> 
+        <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'id'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
 <span class="php-bracket">}</span></div></div>
                 </div>
             </div>
