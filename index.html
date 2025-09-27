@@ -318,7 +318,7 @@
             white-space: pre-wrap;
             word-break: break-all;
             overflow: hidden;
-            background: #f8f9fa;
+            background: #f5f7fa;
         }
 
         .code-block {
@@ -545,7 +545,7 @@
     <nav class="nav">
         <div class="container">
             <div class="nav-content">
-                <div class="logo">Redis Stream Queue</div>
+                <div class="logo">🚀 Redis Stream Queue</div>
                 <ul class="nav-links">
                     <li><a href="#quick-install">快速安装</a></li>
                     <li><a href="#quick-start">快速开始</a></li>
@@ -560,11 +560,11 @@
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <h1>Redis Stream Queue</h1>
+                <h1>🚀 Redis Stream Queue</h1>
                 <p class="subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
                 <div class="hero-buttons">
-                    <a href="#quick-install" class="btn btn-primary">🚀 快速开始</a>
-                    <a href="https://github.com/Tinywan/redis-stream" class="btn btn-secondary">📖 查看文档</a>
+                    <a href="#quick-install" class="btn btn-primary">快速开始</a>
+                    <a href="https://github.com/Tinywan/redis-stream" class="btn btn-secondary">查看文档</a>
                 </div>
             </div>
         </div>
@@ -574,7 +574,7 @@
     <section id="quick-install" class="install">
         <div class="container">
             <div class="install-content">
-                <h2>🚀 快速安装</h2>
+                <h2>快速安装</h2>
                 <div class="code-block">
                     <button class="copy-btn" onclick="copyCode()">复制</button>
                     composer require tinywan/redis-stream
@@ -586,10 +586,10 @@
     <!-- Quick Start Section -->
     <section id="quick-start" class="quick-start">
         <div class="container">
-            <h2 class="section-title">⚡ 快速开始</h2>
+            <h2 class="section-title">快速开始</h2>
             <div class="code-grid">
                 <div class="code-card">
-                    <div class="code-card-header">📤 生产者示例</div>
+                    <div class="code-card-header">生产者示例</div>
                     <div class="code-card-content"><div class="typing-code"><span class="php-tag">&lt;?php</span>
 
 <span class="php-comment">// 基础配置</span>
@@ -613,7 +613,7 @@
 <span class="php-bracket">]</span><span class="php-bracket">)</span><span class="php-operator">;</span></div></div>
                 </div>
                 <div class="code-card">
-                    <div class="code-card-header">📥 消费者示例</div>
+                    <div class="code-card-header">消费者示例</div>
                     <div class="code-card-content"><div class="typing-code"><span class="php-tag">&lt;?php</span>
 
 <span class="php-comment">// 创建消费者实例</span>
@@ -642,7 +642,7 @@
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
-            <h2 class="section-title">✨ 核心特性</h2>
+            <h2 class="section-title">核心特性</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <span class="feature-icon">⚡</span>
@@ -746,12 +746,27 @@
         // 导航栏滚动效果
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('.nav');
+            const navLinks = nav.querySelectorAll('.nav-links a');
+            const logo = nav.querySelector('.logo');
+            
             if (window.scrollY > 100) {
                 nav.style.background = 'linear-gradient(135deg, rgba(220, 56, 45, 0.95) 0%, rgba(169, 38, 30, 0.9) 100%)';
                 nav.style.boxShadow = '0 8px 30px rgba(220, 56, 45, 0.3)';
+                // 滚动时导航链接和logo使用白色
+                navLinks.forEach(link => {
+                    link.style.color = '#ffffff';
+                });
+                logo.style.color = '#ffffff';
+                logo.style.textShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
             } else {
                 nav.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 247, 250, 0.95) 100%)';
                 nav.style.boxShadow = '0 2px 15px rgba(220, 56, 45, 0.1)';
+                // 非滚动时恢复原色
+                navLinks.forEach(link => {
+                    link.style.color = 'var(--text-secondary)';
+                });
+                logo.style.color = '';
+                logo.style.textShadow = '';
             }
         });
 
