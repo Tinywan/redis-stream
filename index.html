@@ -108,8 +108,8 @@
             animation: pulse 6s ease-in-out infinite;
         }
 
-        /* 时间流波浪效果 */
-        .time-waves {
+        /* 时间流效果 */
+        .time-stream {
             position: absolute;
             top: 0;
             left: 0;
@@ -117,93 +117,166 @@
             height: 100%;
             overflow: hidden;
             z-index: 0;
+            perspective: 1000px;
         }
 
-        .wave {
+        .time-particle {
             position: absolute;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(220, 56, 45, 0.1) 25%, 
-                rgba(130, 179, 103, 0.1) 50%, 
-                rgba(220, 56, 45, 0.1) 75%, 
-                transparent 100%);
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, rgba(220, 56, 45, 0.8) 0%, rgba(130, 179, 103, 0.6) 100%);
             border-radius: 50%;
-            animation: waveFlow 8s ease-in-out infinite;
-            filter: blur(2px);
+            animation: timeFlow 15s linear infinite;
         }
 
-        .wave:nth-child(1) {
-            top: -50%;
-            left: -50%;
+        .time-particle:nth-child(1) {
+            top: 10%;
+            left: -5%;
             animation-delay: 0s;
-            animation-duration: 8s;
-        }
-
-        .wave:nth-child(2) {
-            top: -30%;
-            left: -30%;
-            animation-delay: 2s;
-            animation-duration: 10s;
-            opacity: 0.7;
-        }
-
-        .wave:nth-child(3) {
-            top: -70%;
-            left: -70%;
-            animation-delay: 4s;
             animation-duration: 12s;
-            opacity: 0.5;
         }
 
-        @keyframes waveFlow {
+        .time-particle:nth-child(2) {
+            top: 20%;
+            left: -5%;
+            animation-delay: 1s;
+            animation-duration: 14s;
+        }
+
+        .time-particle:nth-child(3) {
+            top: 30%;
+            left: -5%;
+            animation-delay: 2s;
+            animation-duration: 16s;
+        }
+
+        .time-particle:nth-child(4) {
+            top: 40%;
+            left: -5%;
+            animation-delay: 3s;
+            animation-duration: 13s;
+        }
+
+        .time-particle:nth-child(5) {
+            top: 50%;
+            left: -5%;
+            animation-delay: 4s;
+            animation-duration: 15s;
+        }
+
+        .time-particle:nth-child(6) {
+            top: 60%;
+            left: -5%;
+            animation-delay: 5s;
+            animation-duration: 11s;
+        }
+
+        .time-particle:nth-child(7) {
+            top: 70%;
+            left: -5%;
+            animation-delay: 6s;
+            animation-duration: 17s;
+        }
+
+        .time-particle:nth-child(8) {
+            top: 80%;
+            left: -5%;
+            animation-delay: 7s;
+            animation-duration: 14s;
+        }
+
+        .time-particle:nth-child(9) {
+            top: 90%;
+            left: -5%;
+            animation-delay: 8s;
+            animation-duration: 12s;
+        }
+
+        @keyframes timeFlow {
             0% {
-                transform: translateX(-100%) translateY(-100%) rotate(0deg) scale(0.8);
+                transform: translateX(0) translateY(0) translateZ(0) scale(0);
                 opacity: 0;
             }
-            25% {
-                opacity: 0.6;
-            }
-            50% {
-                transform: translateX(0%) translateY(0%) rotate(180deg) scale(1.2);
+            10% {
+                transform: translateX(10vw) translateY(-20px) translateZ(50px) scale(1);
                 opacity: 0.8;
             }
-            75% {
-                opacity: 0.4;
+            50% {
+                transform: translateX(50vw) translateY(-10px) translateZ(100px) scale(1.5);
+                opacity: 1;
+            }
+            90% {
+                transform: translateX(90vw) translateY(-30px) translateZ(50px) scale(1);
+                opacity: 0.6;
             }
             100% {
-                transform: translateX(100%) translateY(100%) rotate(360deg) scale(1.5);
+                transform: translateX(100vw) translateY(-50px) translateZ(0) scale(0);
                 opacity: 0;
             }
         }
 
-        /* 3D阴影效果 */
+        /* 时间流轨迹 */
+        .time-trail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(220, 56, 45, 0.03) 20%, 
+                rgba(130, 179, 103, 0.05) 50%, 
+                rgba(220, 56, 45, 0.03) 80%, 
+                transparent 100%);
+            animation: trailFlow 8s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes trailFlow {
+            0%, 100% {
+                transform: translateX(-100%) skewX(-15deg);
+                opacity: 0;
+            }
+            50% {
+                transform: translateX(0%) skewX(-15deg);
+                opacity: 1;
+            }
+        }
+
+        /* 时间流3D阴影效果 */
         .hero-shadow {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 80%;
-            height: 60%;
-            background: radial-gradient(ellipse at center, 
-                rgba(220, 56, 45, 0.15) 0%, 
-                rgba(130, 179, 103, 0.1) 40%, 
-                transparent 70%);
+            width: 90%;
+            height: 40%;
+            background: linear-gradient(90deg, 
+                rgba(220, 56, 45, 0.1) 0%, 
+                rgba(130, 179, 103, 0.15) 50%, 
+                rgba(220, 56, 45, 0.1) 100%);
             border-radius: 50%;
-            transform: translate(-50%, -50%) rotateX(60deg);
-            filter: blur(20px);
-            animation: shadowPulse 6s ease-in-out infinite;
+            transform: translate(-50%, -50%) rotateX(45deg) rotateY(15deg);
+            filter: blur(25px);
+            animation: timeShadowPulse 8s ease-in-out infinite;
             z-index: -1;
         }
 
-        @keyframes shadowPulse {
+        @keyframes timeShadowPulse {
             0%, 100% {
-                transform: translate(-50%, -50%) rotateX(60deg) scale(1);
+                transform: translate(-50%, -50%) rotateX(45deg) rotateY(15deg) scale(1);
+                opacity: 0.4;
+            }
+            25% {
+                transform: translate(-50%, -50%) rotateX(45deg) rotateY(25deg) scale(1.1);
                 opacity: 0.6;
             }
             50% {
-                transform: translate(-50%, -50%) rotateX(60deg) scale(1.2);
+                transform: translate(-50%, -50%) rotateX(45deg) rotateY(15deg) scale(1.2);
                 opacity: 0.8;
+            }
+            75% {
+                transform: translate(-50%, -50%) rotateX(45deg) rotateY(5deg) scale(1.1);
+                opacity: 0.6;
             }
         }
 
@@ -810,10 +883,17 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="time-waves">
-            <div class="wave"></div>
-            <div class="wave"></div>
-            <div class="wave"></div>
+        <div class="time-stream">
+            <div class="time-trail"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
+            <div class="time-particle"></div>
         </div>
         <div class="hero-shadow"></div>
         <div class="container">
