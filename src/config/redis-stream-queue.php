@@ -2,7 +2,7 @@
 /**
  * Redis Stream Queue Configuration
  *
- * 默认配置文件，支持即时消息
+ * 默认配置文件，支持即时消息和延迟消息
  * 
  * 使用方法：
  * 1. 根据需要调整下面的参数
@@ -16,6 +16,9 @@
  * retry_attempts: 消息处理失败时的最大重试次数
  * retry_delay: 重试延迟时间（毫秒），每次重试之间的间隔时间
  * debug: 是否启用调试模式，启用时会记录详细的日志信息到文件
+ * delayed_queue_suffix: 延迟队列Sorted Set名称后缀
+ * scheduler_interval: 调度器扫描间隔时间（秒）
+ * scheduler_batch_size: 调度器每次处理的最大任务数量
  */
 
 return [
@@ -27,6 +30,9 @@ return [
         'retry_attempts' => 3,                        // 重试次数
         'retry_delay' => 1000,                        // 重试延迟（毫秒）
         'debug' => false,                              // 是否启用调试模式
+        'delayed_queue_suffix' => '_delayed',          // 延迟队列Sorted Set名称后缀
+        'scheduler_interval' => 1,                     // 调度器扫描间隔时间（秒）
+        'scheduler_batch_size' => 100,                 // 调度器每次处理的最大任务数量
     ]
 ];
 

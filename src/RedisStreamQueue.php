@@ -43,6 +43,9 @@ class RedisStreamQueue
     
     /** @var string 消费者名称 */
     protected string $consumerName;
+    
+    /** @var string 延迟队列Sorted Set名称 */
+    protected string $delayedQueueName;
 
     /**
      * 获取单例实例
@@ -99,11 +102,15 @@ class RedisStreamQueue
             'retry_attempts' => 3,          // 重试次数
             'retry_delay' => 1000,          // 重试延迟（毫秒）
             'debug' => false,               // 是否启用调试模式（启用时记录日志）
+            'delayed_queue_suffix' => '_delayed', // 延迟队列名称后缀
+            'scheduler_interval' => 1,      // 调度器扫描间隔（秒）
+            'scheduler_batch_size' => 100,  // 调度器每次处理的最大数量
         ], $queueConfig);
 
         $this->streamName = $this->queueConfig['stream_name'];
         $this->consumerGroup = $this->queueConfig['consumer_group'];
         $this->consumerName = $this->queueConfig['consumer_name'];
+        $this->delayedQueueName = $this->streamName . $this->queueConfig['delayed_queue_suffix'];
         $this->logger = $logger ?? MonologFactory::createLogger('redis-stream', $this->queueConfig['debug']);
         
         // 初始化连接池
@@ -163,36 +170,24 @@ class RedisStreamQueue
     /**
      * 发送消息到队列
      * 
-     * 将消息添加到 Redis Stream 中，自动添加时间戳、重试次数等元数据
+     * 将消息添加到 Redis Stream 中，支持立即发送和延迟发送
      * 
      * @param mixed $message 消息内容，可以是字符串、数组或对象
      * @param array $metadata 附加的元数据，会合并到消息中
-          * @return string 返回生成的消息ID
+     * @param int $delaySeconds 延迟秒数，0 表示立即发送
+     * @return string 返回生成的消息ID
      * @throws RedisStreamException 当消息发送失败时抛出异常
      */
-    public function send($message, array $metadata = []): string
+    public function send($message, array $metadata = [], int $delaySeconds = 0): string
     {
         try {
-            // 确保消费者组存在
-            $this->ensureConsumerGroup();
-            
-            // 构建消息数据
-            $data = array_merge([
-                'message' => is_string($message) ? $message : json_encode($message),
-                'timestamp' => time(),
-                'attempts' => 0,
-                'status' => 'pending'
-            ], $metadata);
-
-            // 添加到队列
-            $messageId = $this->redis->xAdd($this->streamName, '*', $data);
-            
-            $this->logger->info('Message sent to stream', [
-                'message_id' => $messageId,
-                'stream' => $this->streamName
-            ]);
-
-            return $messageId;
+            if ($delaySeconds > 0) {
+                // 延迟发送
+                return $this->sendDelayed($message, $metadata, $delaySeconds);
+            } else {
+                // 立即发送
+                return $this->sendImmediate($message, $metadata);
+            }
         } catch (Throwable $e) {
             $this->logger->error('Failed to send message', ['error' => $e->getMessage()]);
             throw new RedisStreamException('Failed to send message: ' . $e->getMessage(), 0, $e);
@@ -664,5 +659,402 @@ class RedisStreamQueue
     public function consumeLatest(?callable $callback = null): ?array
     {
         return $this->consume($callback, '$');
+    }
+
+    // =========================================================================
+    // 延迟队列功能方法 (基于ZSET+Stream架构)
+    // =========================================================================
+
+    /**
+     * 立即发送消息到Stream
+     *
+     * @param mixed $message 消息内容
+     * @param array $metadata 附加元数据
+     * @return string 消息ID
+     * @throws \RedisException
+     * @throws RedisStreamException
+     */
+    private function sendImmediate($message, array $metadata = []): string
+    {
+        // 确保消费者组存在
+        $this->ensureConsumerGroup();
+        
+        // 构建消息数据
+        $data = array_merge([
+            'message' => is_string($message) ? $message : json_encode($message),
+            'timestamp' => time(),
+            'attempts' => 0,
+            'status' => 'pending'
+        ], $metadata);
+
+        // 添加到Stream
+        $messageId = $this->redis->xAdd($this->streamName, '*', $data);
+        
+        $this->logger->info('Message sent to stream', [
+            'message_id' => $messageId,
+            'stream' => $this->streamName
+        ]);
+
+        return $messageId;
+    }
+
+    /**
+     * 发送延迟消息到Sorted Set
+     *
+     * @param mixed $message 消息内容
+     * @param array $metadata 附加元数据
+     * @param int $delaySeconds 延迟秒数
+     * @return string 任务ID
+     * @throws \RedisException
+     * @throws RedisStreamException
+     */
+    private function sendDelayed($message, array $metadata = [], int $delaySeconds = 0): string
+    {
+        $executeTime = time() + $delaySeconds;
+        $taskId = uniqid('delayed_', true);
+        
+        // 构建任务数据
+        $taskData = [
+            'id' => $taskId,
+            'message' => is_string($message) ? $message : json_encode($message),
+            'metadata' => $metadata,
+            'execute_time' => $executeTime,
+            'delay_seconds' => $delaySeconds,
+            'created_at' => time(),
+            'status' => 'delayed'
+        ];
+
+        // 序列化任务数据
+        $taskJson = json_encode($taskData);
+        
+        // 添加到Sorted Set，score为执行时间戳
+        $result = $this->redis->zAdd($this->delayedQueueName, $executeTime, $taskJson);
+        
+        if ($result === false) {
+            throw new RedisStreamException('Failed to add delayed task to sorted set');
+        }
+        
+        $this->logger->info('Delayed task added to queue', [
+            'task_id' => $taskId,
+            'delay_seconds' => $delaySeconds,
+            'execute_time' => date('Y-m-d H:i:s', $executeTime),
+            'queue' => $this->delayedQueueName
+        ]);
+
+        return $taskId;
+    }
+
+    /**
+     * 运行延迟队列调度器
+     * 
+     * 扫描到期的延迟任务并投递到Stream队列
+     * 
+     * @param int $maxTasks 最大处理任务数量，0表示不限制
+     * @return int 处理的任务数量
+     * @throws RedisStreamException
+     */
+    public function runDelayedScheduler(int $maxTasks = 0): int
+    {
+        try {
+            $currentTime = time();
+            $processedCount = 0;
+            $maxBatchSize = $this->queueConfig['scheduler_batch_size'];
+            
+            $this->logger->info('Starting delayed scheduler', [
+                'current_time' => date('Y-m-d H:i:s', $currentTime),
+                'max_tasks' => $maxTasks,
+                'max_batch_size' => $maxBatchSize
+            ]);
+
+            // 获取到期的任务 (score <= 当前时间)
+            $expiredTasks = $this->redis->zRangeByScore(
+                $this->delayedQueueName, 
+                0, 
+                $currentTime, 
+                ['limit' => [0, $maxBatchSize]]
+            );
+
+            foreach ($expiredTasks as $taskJson) {
+                // 检查是否达到最大处理数量
+                if ($maxTasks > 0 && $processedCount >= $maxTasks) {
+                    break;
+                }
+
+                try {
+                    $taskData = json_decode($taskJson, true);
+                    if ($taskData === null) {
+                        $this->logger->warning('Invalid task data, removing', ['task_data' => $taskJson]);
+                        $this->redis->zRem($this->delayedQueueName, $taskJson);
+                        continue;
+                    }
+
+                    // 从延迟队列中移除任务
+                    $removed = $this->redis->zRem($this->delayedQueueName, $taskJson);
+                    if ($removed === 0) {
+                        continue; // 任务已被其他调度器处理
+                    }
+
+                    // 投递到Stream队列
+                    $this->deliverDelayedTask($taskData);
+                    $processedCount++;
+
+                    $this->logger->info('Delayed task delivered to stream', [
+                        'task_id' => $taskData['id'],
+                        'delay_seconds' => $taskData['delay_seconds'],
+                        'message' => $taskData['message']
+                    ]);
+
+                } catch (Throwable $e) {
+                    $this->logger->error('Failed to process delayed task', [
+                        'error' => $e->getMessage(),
+                        'task_data' => $taskJson
+                    ]);
+                }
+            }
+
+            $this->logger->info('Scheduler completed', [
+                'processed_count' => $processedCount,
+                'total_expired' => count($expiredTasks)
+            ]);
+
+            return $processedCount;
+
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to run delayed scheduler', ['error' => $e->getMessage()]);
+            throw new RedisStreamException('Failed to run delayed scheduler: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * 投递延迟任务到Stream队列
+     * 
+     * @param array $taskData 任务数据
+     * @throws RedisStreamException
+     */
+    private function deliverDelayedTask(array $taskData): void
+    {
+        // 确保消费者组存在
+        $this->ensureConsumerGroup();
+        
+        // 构建消息数据
+        $messageData = array_merge($taskData['metadata'], [
+            'message' => $taskData['message'],
+            'timestamp' => time(),
+            'attempts' => 0,
+            'status' => 'pending',
+            'delayed_task_id' => $taskData['id'],
+            'original_delay' => $taskData['delay_seconds'],
+            'created_at' => $taskData['created_at']
+        ]);
+
+        // 添加到Stream
+        $messageId = $this->redis->xAdd($this->streamName, '*', $messageData);
+        
+        $this->logger->debug('Delayed task delivered', [
+            'task_id' => $taskData['id'],
+            'message_id' => $messageId,
+            'stream' => $this->streamName
+        ]);
+    }
+
+    /**
+     * 获取延迟队列统计信息
+     * 
+     * @return array 统计信息
+     */
+    public function getDelayedQueueStats(): array
+    {
+        try {
+            $currentTime = time();
+            $totalTasks = $this->redis->zCard($this->delayedQueueName);
+            
+            // 获取即将到期的任务数量（未来60秒内）
+            $upcomingCount = $this->redis->zCount(
+                $this->delayedQueueName, 
+                (string)$currentTime, 
+                (string)($currentTime + 60)
+            );
+            
+            // 获取过期未处理的任务数量
+            $expiredCount = $this->redis->zCount(
+                $this->delayedQueueName, 
+                '0', 
+                (string)$currentTime
+            );
+
+            // 获取最早的任务时间
+            $earliestTask = $this->redis->zRange($this->delayedQueueName, 0, 0, true);
+            $earliestTime = $earliestTask ? (int)current($earliestTask) : null;
+
+            return [
+                'total_delayed_tasks' => $totalTasks,
+                'upcoming_tasks_60s' => $upcomingCount,
+                'expired_tasks' => $expiredCount,
+                'earliest_task_time' => $earliestTime ? date('Y-m-d H:i:s', $earliestTime) : null,
+                'queue_name' => $this->delayedQueueName,
+                'current_time' => date('Y-m-d H:i:s', $currentTime)
+            ];
+
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to get delayed queue stats', ['error' => $e->getMessage()]);
+            return [
+                'total_delayed_tasks' => 0,
+                'upcoming_tasks_60s' => 0,
+                'expired_tasks' => 0,
+                'earliest_task_time' => null,
+                'queue_name' => $this->delayedQueueName,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * 清理过期的延迟任务
+     * 
+     * @param int $maxAge 最大年龄（秒），超过此时间的任务将被清理
+     * @param int $maxTasks 最大清理数量，0表示不限制
+     * @return int 清理的任务数量
+     */
+    public function cleanupExpiredDelayedTasks(int $maxAge = 86400, int $maxTasks = 0): int
+    {
+        try {
+            $currentTime = time();
+            $expiredTime = $currentTime - $maxAge;
+            $cleanedCount = 0;
+            $maxBatchSize = $this->queueConfig['scheduler_batch_size'];
+            
+            $this->logger->info('Starting cleanup of expired delayed tasks', [
+                'current_time' => date('Y-m-d H:i:s', $currentTime),
+                'expired_time' => date('Y-m-d H:i:s', $expiredTime),
+                'max_age' => $maxAge,
+                'max_tasks' => $maxTasks
+            ]);
+
+            // 获取过期的任务
+            $expiredTasks = $this->redis->zRangeByScore(
+                $this->delayedQueueName, 
+                0, 
+                $expiredTime, 
+                ['limit' => [0, $maxBatchSize]]
+            );
+
+            foreach ($expiredTasks as $taskJson) {
+                // 检查是否达到最大清理数量
+                if ($maxTasks > 0 && $cleanedCount >= $maxTasks) {
+                    break;
+                }
+
+                try {
+                    $taskData = json_decode($taskJson, true);
+                    if ($taskData === null) {
+                        // 无效数据，直接删除
+                        $this->redis->zRem($this->delayedQueueName, $taskJson);
+                        $cleanedCount++;
+                        continue;
+                    }
+
+                    // 删除过期任务
+                    $removed = $this->redis->zRem($this->delayedQueueName, $taskJson);
+                    if ($removed > 0) {
+                        $cleanedCount++;
+                        
+                        $this->logger->info('Expired delayed task cleaned up', [
+                            'task_id' => $taskData['id'] ?? 'unknown',
+                            'execute_time' => date('Y-m-d H:i:s', $taskData['execute_time']),
+                            'age_days' => round(($currentTime - $taskData['execute_time']) / 86400, 2)
+                        ]);
+                    }
+
+                } catch (Throwable $e) {
+                    $this->logger->error('Failed to cleanup expired task', [
+                        'error' => $e->getMessage(),
+                        'task_data' => $taskJson
+                    ]);
+                }
+            }
+
+            $this->logger->info('Cleanup completed', [
+                'cleaned_count' => $cleanedCount,
+                'processed_tasks' => count($expiredTasks)
+            ]);
+
+            return $cleanedCount;
+
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to cleanup expired delayed tasks', ['error' => $e->getMessage()]);
+            throw new RedisStreamException('Failed to cleanup expired delayed tasks: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * 启动延迟队列调度器（阻塞模式）
+     * 
+     * @param int $runtime 运行时间（秒），0表示一直运行
+     * @param callable|null $onTick 每次调度后的回调函数
+     * @return void
+     */
+    public function startDelayedScheduler(int $runtime = 0, ?callable $onTick = null): void
+    {
+        $this->logger->info('Starting delayed scheduler in blocking mode', [
+            'runtime' => $runtime > 0 ? "${runtime}s" : 'unlimited',
+            'interval' => $this->queueConfig['scheduler_interval']
+        ]);
+
+        $startTime = time();
+        $lastScheduledAt = 0;
+
+        try {
+            while (true) {
+                // 检查运行时间限制
+                if ($runtime > 0 && (time() - $startTime) >= $runtime) {
+                    $this->logger->info('Scheduler runtime completed');
+                    break;
+                }
+
+                // 检查是否到了调度时间
+                $currentTime = time();
+                if ($currentTime - $lastScheduledAt >= $this->queueConfig['scheduler_interval']) {
+                    $processed = $this->runDelayedScheduler();
+                    $lastScheduledAt = $currentTime;
+
+                    // 执行回调函数
+                    if ($onTick !== null) {
+                        $stats = $this->getDelayedQueueStats();
+                        $onTick($processed, $stats);
+                    }
+                }
+
+                // 短暂休眠避免CPU占用过高
+                usleep(100000); // 100ms
+            }
+        } catch (Throwable $e) {
+            $this->logger->error('Scheduler crashed', ['error' => $e->getMessage()]);
+            throw new RedisStreamException('Scheduler crashed: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * 获取延迟队列名称
+     * 
+     * @return string
+     */
+    public function getDelayedQueueName(): string
+    {
+        return $this->delayedQueueName;
+    }
+
+    /**
+     * 获取延迟队列长度
+     * 
+     * @return int
+     */
+    public function getDelayedQueueLength(): int
+    {
+        try {
+            return $this->redis->zCard($this->delayedQueueName);
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to get delayed queue length', ['error' => $e->getMessage()]);
+            return 0;
+        }
     }
 }

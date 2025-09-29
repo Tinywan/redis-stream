@@ -46,6 +46,25 @@ try {
     ], 0);
     echo "✅ 消息发送成功，ID: $messageId\n";
     
+    // 3.1 发送延迟消息
+    echo "\n📤 发送延迟消息（10秒后执行）...\n";
+    $delayedMessageId = $queue->send('延迟消息 - 10秒后执行', [
+        'type' => 'delayed_greeting',
+        'timestamp' => date('Y-m-d H:i:s')
+    ], 10);
+    echo "✅ 延迟消息发送成功，任务ID: $delayedMessageId\n";
+    
+    // 3.2 运行调度器处理延迟消息
+    echo "\n⏰ 运行延迟队列调度器...\n";
+    $processedCount = $queue->runDelayedScheduler();
+    echo "📊 调度器处理了 {$processedCount} 个延迟任务\n";
+    
+    // 3.3 查看延迟队列状态
+    $stats = $queue->getDelayedQueueStats();
+    echo "📈 延迟队列状态:\n";
+    echo "   总延迟任务: {$stats['total_delayed_tasks']}\n";
+    echo "   即将到期(60s): {$stats['upcoming_tasks_60s']}\n";
+    echo "   过期任务: {$stats['expired_tasks']}\n";
       
     // 4. 消费消息
     echo "\n📥 消费消息...\n";
@@ -67,6 +86,7 @@ try {
     echo "\n📊 队列状态:\n";
     echo "   Stream 长度: " . $queue->getStreamLength() . "\n";
     echo "   待处理消息: " . $queue->getPendingCount() . "\n";
+    echo "   延迟队列长度: " . $queue->getDelayedQueueLength() . "\n";
        
     echo "\n=== 快速开始完成 ===\n";
     
