@@ -14,7 +14,6 @@ use Throwable;
  * 
  * 基于 Redis Stream 实现的轻量级消息队列，支持多个生产者和消费者
  * 提供消息持久化、确认机制、重试机制和可靠投递
- * 同时支持延时队列功能，可在同一类中处理即时和延时消息
  */
 class RedisStreamQueue
 {
@@ -44,9 +43,6 @@ class RedisStreamQueue
     
     /** @var string 消费者名称 */
     protected string $consumerName;
-    
-    /** @var string 延时流名称（基于主流名称自动生成） */
-    protected string $delayedStreamName;
 
     /**
      * 获取单例实例
@@ -103,15 +99,11 @@ class RedisStreamQueue
             'retry_attempts' => 3,          // 重试次数
             'retry_delay' => 1000,          // 重试延迟（毫秒）
             'debug' => false,               // 是否启用调试模式（启用时记录日志）
-            'delayed_queue_suffix' => '_delayed', // 延时流名称后缀
-            'scheduler_interval' => 1,      // 调度器间隔时间（秒）
-            'max_batch_size' => 100,        // 每次处理最大批次大小
         ], $queueConfig);
 
         $this->streamName = $this->queueConfig['stream_name'];
         $this->consumerGroup = $this->queueConfig['consumer_group'];
         $this->consumerName = $this->queueConfig['consumer_name'];
-        $this->delayedStreamName = $this->streamName . $this->queueConfig['delayed_queue_suffix'];
         $this->logger = $logger ?? MonologFactory::createLogger('redis-stream', $this->queueConfig['debug']);
         
         // 初始化连接池
@@ -172,116 +164,43 @@ class RedisStreamQueue
      * 发送消息到队列
      * 
      * 将消息添加到 Redis Stream 中，自动添加时间戳、重试次数等元数据
-     * 支持延时发送和指定时间发送
      * 
      * @param mixed $message 消息内容，可以是字符串、数组或对象
      * @param array $metadata 附加的元数据，会合并到消息中
-     * @param int $delayOrTimestamp 延时秒数或指定时间戳：
-     *                              - 0 表示立即执行
-     *                              - 正整数且小于当前时间戳 表示延时秒数（支持任意时长）
-     *                              - 大于当前时间戳 表示指定时间戳
-     * @return string 返回生成的消息ID
+          * @return string 返回生成的消息ID
      * @throws RedisStreamException 当消息发送失败时抛出异常
      */
-    public function send($message, array $metadata = [], int $delayOrTimestamp = 0): string
+    public function send($message, array $metadata = []): string
     {
         try {
-            $currentTime = time();
+            // 确保消费者组存在
+            $this->ensureConsumerGroup();
             
-            // 判断参数类型：延时秒数还是指定时间戳
-            if ($delayOrTimestamp <= 0) {
-                // 立即执行
-                $delaySeconds = 0;
-            } elseif ($delayOrTimestamp < $currentTime) {
-                // 延时秒数（支持任意时长，1年、10年都可以）
-                $delaySeconds = $delayOrTimestamp;
-            } else {
-                // 指定时间戳（大于当前时间戳）
-                $delaySeconds = max(0, $delayOrTimestamp - $currentTime);
-            }
+            // 构建消息数据
+            $data = array_merge([
+                'message' => is_string($message) ? $message : json_encode($message),
+                'timestamp' => time(),
+                'attempts' => 0,
+                'status' => 'pending'
+            ], $metadata);
 
-            if ($delaySeconds < 0) {
-                throw new RedisStreamException('Delay time must be greater than or equal to 0');
-            }
+            // 添加到队列
+            $messageId = $this->redis->xAdd($this->streamName, '*', $data);
+            
+            $this->logger->info('Message sent to stream', [
+                'message_id' => $messageId,
+                'stream' => $this->streamName
+            ]);
 
-            // 根据延时参数决定发送到哪个流
-            if ($delaySeconds > 0) {
-                return $this->sendToDelayedStream($message, $delaySeconds, $metadata);
-            } else {
-                return $this->sendToMainStream($message, $metadata);
-            }
+            return $messageId;
         } catch (Throwable $e) {
             $this->logger->error('Failed to send message', ['error' => $e->getMessage()]);
             throw new RedisStreamException('Failed to send message: ' . $e->getMessage(), 0, $e);
         }
     }
 
-    /**
-     * 发送消息到主队列（立即执行）
-     * 
-     * @param mixed $message 消息内容
-     * @param array $metadata 附加元数据
-     * @return string 消息ID
-     */
-    private function sendToMainStream($message, array $metadata = []): string
-    {
-        // 确保消费者组存在
-        $this->ensureConsumerGroup();
-        
-        // 构建消息数据
-        $data = array_merge([
-            'message' => is_string($message) ? $message : json_encode($message),
-            'timestamp' => time(),
-            'attempts' => 0,
-            'status' => 'pending'
-        ], $metadata);
-
-        // 添加到主队列
-        $messageId = $this->redis->xAdd($this->streamName, '*', $data);
-        
-        $this->logger->info('Message sent to main stream', [
-            'message_id' => $messageId,
-            'stream' => $this->streamName
-        ]);
-
-        return $messageId;
-    }
-
-    /**
-     * 发送消息到延时队列
-     * 
-     * @param mixed $message 消息内容
-     * @param int $delaySeconds 延时秒数
-     * @param array $metadata 附加元数据
-     * @return string 消息ID
-     */
-    private function sendToDelayedStream($message, int $delaySeconds, array $metadata = []): string
-    {
-        $executeTime = time() + $delaySeconds;
-        
-        // 构建延时消息数据
-        $data = array_merge([
-            'message' => is_string($message) ? $message : json_encode($message),
-            'execute_time' => $executeTime,
-            'delay_seconds' => $delaySeconds,
-            'created_at' => time(),
-            'attempts' => 0,
-            'status' => 'delayed'
-        ], $metadata);
-
-        // 添加到延时流
-        $messageId = $this->redis->xAdd($this->delayedStreamName, '*', $data);
-        
-        $this->logger->info('Delayed message sent', [
-            'message_id' => $messageId,
-            'delay_seconds' => $delaySeconds,
-            'execute_time' => date('Y-m-d H:i:s', $executeTime),
-            'stream' => $this->delayedStreamName
-        ]);
-
-        return $messageId;
-    }
-
+  
+    
     /**
      * 从队列中消费消息
      * 
@@ -721,416 +640,7 @@ class RedisStreamQueue
         throw new RedisStreamException('Cannot serialize singleton');
     }
 
-    // =========================================================================
-    // 延时队列功能方法
-    // =========================================================================
-
-    /**
-     * 确保延时流存在
-     * 
-     * @return void
-     * @throws RedisStreamException 当创建失败时抛出异常
-     */
-    protected function ensureDelayedStream(): void
-    {
-        if ($this->delayedStreamName === null) {
-            throw new RedisStreamException('Delayed queue is not enabled');
-        }
-
-        try {
-            // 检查延时流是否存在
-            $delayedStreamExists = $this->redis->exists($this->delayedStreamName);
-            if (!$delayedStreamExists) {
-                $this->logger->info('Delayed stream created', [
-                    'stream' => $this->delayedStreamName
-                ]);
-            }
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to ensure delayed stream', ['error' => $e->getMessage()]);
-            throw new RedisStreamException('Failed to ensure delayed stream: ' . $e->getMessage(), 0, $e);
-        }
-    }
-
-    /**
-     * 检查是否启用了延时队列功能
-     * 
-     * @return bool 始终返回 true，因为延时功能已内置
-     */
-    public function isDelayedQueueEnabled(): bool
-    {
-        return true;
-    }
-
-    /**
-     * 发送定时消息（在指定时间执行）
-     * 
-     * @param mixed $message 消息内容
-     * @param int $timestamp 执行时间戳
-     * @param array $metadata 附加元数据
-     * @return string 返回生成的消息ID
-     * @throws RedisStreamException 当发送失败时抛出异常
-     */
-    public function sendAt($message, int $timestamp, array $metadata = []): string
-    {
-        // 直接调用统一的 send 方法，传入时间戳
-        // 新的 send() 方法会自动识别时间戳参数
-        return $this->send($message, $metadata, $timestamp);
-    }
-
-    /**
-     * 运行延时消息调度器
-     * 
-     * 将到期的延时消息转移到主队列中
-     * 
-     * @param int $maxMessages 最大处理消息数量，0 表示不限制
-     * @return int 转移的消息数量
-     * @throws RedisStreamException 当调度失败时抛出异常
-     */
-    public function runDelayedScheduler(int $maxMessages = 0): int
-    {
-
-        try {
-            $currentTime = time();
-            $transferredCount = 0;
-            $maxBatchSize = $this->queueConfig['max_batch_size'];
-            
-            $this->logger->info('Starting delayed message scheduler', [
-                'current_time' => date('Y-m-d H:i:s', $currentTime),
-                'max_messages' => $maxMessages,
-                'max_batch_size' => $maxBatchSize
-            ]);
-
-            // 读取延时消息
-            $messages = $this->redis->xRange($this->delayedStreamName, '-', '+', $maxBatchSize);
-            
-            foreach ($messages as $messageId => $data) {
-                // 检查是否达到最大处理数量
-                if ($maxMessages > 0 && $transferredCount >= $maxMessages) {
-                    break;
-                }
-
-                // 检查是否到期
-                if (isset($data['execute_time']) && (int)$data['execute_time'] <= $currentTime) {
-                    // 从延时流删除
-                    $this->redis->xDel($this->delayedStreamName, [$messageId]);
-                    
-                    // 添加到主队列
-                    $data['status'] = 'ready';
-                    $data['transferred_at'] = $currentTime;
-                    unset($data['execute_time']);
-                    unset($data['delay_seconds']);
-                    
-                    $newMessageId = $this->redis->xAdd($this->streamName, '*', $data);
-                    
-                    $transferredCount++;
-                    
-                    $this->logger->info('Delayed message transferred to main queue', [
-                        'original_id' => $messageId,
-                        'new_id' => $newMessageId,
-                        'delay_seconds' => $data['delay_seconds'] ?? 'unknown'
-                    ]);
-                }
-            }
-
-            $this->logger->info('Scheduler completed', [
-                'transferred_count' => $transferredCount,
-                'processed_messages' => count($messages)
-            ]);
-
-            return $transferredCount;
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to run delayed scheduler', ['error' => $e->getMessage()]);
-            throw new RedisStreamException('Failed to run delayed scheduler: ' . $e->getMessage(), 0, $e);
-        }
-    }
-
-    /**
-     * 获取延时队列状态
-     * 
-     * @return array 延时队列状态信息
-     */
-    public function getDelayedStatus(): array
-    {
-
-        try {
-            return [
-                'delayed_stream_length' => $this->getDelayedStreamLength(),
-                'main_stream_length' => $this->getStreamLength(),
-                'pending_count' => $this->getPendingCount(),
-                'upcoming_count' => $this->getUpcomingMessageCount(),
-                'delayed_stream' => $this->delayedStreamName,
-                'main_stream' => $this->streamName,
-                'consumer_group' => $this->consumerGroup,
-                'consumer_name' => $this->consumerName,
-                'enabled' => true,
-            ];
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to get delayed status', ['error' => $e->getMessage()]);
-            throw new RedisStreamException('Failed to get delayed status: ' . $e->getMessage(), 0, $e);
-        }
-    }
-
-    /**
-     * 获取延时流长度
-     * 
-     * @return int 延时流中的消息数量
-     */
-    public function getDelayedStreamLength(): int
-    {
-
-        try {
-            return $this->redis->xLen($this->delayedStreamName);
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to get delayed stream length', ['error' => $e->getMessage()]);
-            return 0;
-        }
-    }
-
-    /**
-     * 获取即将到期的消息数量
-     * 
-     * @param int $withinSeconds 未来多少秒内到期
-     * @return int 即将到期的消息数量
-     */
-    public function getUpcomingMessageCount(int $withinSeconds = 60): int
-    {
-
-        try {
-            $currentTime = time();
-            $futureTime = $currentTime + $withinSeconds;
-            $count = 0;
-            
-            // 读取延时消息
-            $messages = $this->redis->xRange($this->delayedStreamName, '-', '+', 1000);
-            
-            foreach ($messages as $messageId => $data) {
-                if (isset($data['execute_time']) && (int)$data['execute_time'] <= $futureTime) {
-                    $count++;
-                }
-            }
-            
-            return $count;
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to get upcoming message count', ['error' => $e->getMessage()]);
-            return 0;
-        }
-    }
-
-    /**
-     * 获取延时流名称
-     * 
-     * @return string 延时流名称
-     */
-    public function getDelayedStreamName(): string
-    {
-        return $this->delayedStreamName;
-    }
-
-    /**
-     * 启动延时队列调度器（阻塞模式）
-     * 
-     * @param int $runtime 运行时间（秒），0 表示一直运行
-     * @param callable|null $onTick 每次调度后的回调函数
-     * @return void
-     * @throws RedisStreamException 当启动失败时抛出异常
-     */
-    public function startDelayedScheduler(int $runtime = 0, ?callable $onTick = null): void
-    {
-        $this->logger->info('Starting delayed scheduler in blocking mode', [
-            'runtime' => $runtime > 0 ? "${runtime}s" : 'unlimited',
-            'interval' => $this->queueConfig['scheduler_interval']
-        ]);
-
-        $startTime = time();
-        $lastScheduledAt = 0;
-
-        try {
-            while (true) {
-                // 检查运行时间限制
-                if ($runtime > 0 && (time() - $startTime) >= $runtime) {
-                    $this->logger->info('Scheduler runtime completed');
-                    break;
-                }
-
-                // 检查是否到了调度时间
-                $currentTime = time();
-                if ($currentTime - $lastScheduledAt >= $this->queueConfig['scheduler_interval']) {
-                    $transferred = $this->runDelayedScheduler();
-                    $lastScheduledAt = $currentTime;
-
-                    // 执行回调函数
-                    if ($onTick !== null) {
-                        $onTick($transferred, $this->getDelayedStatus());
-                    }
-                }
-
-                // 短暂休眠避免CPU占用过高
-                usleep(100000); // 100ms
-            }
-        } catch (Throwable $e) {
-            $this->logger->error('Scheduler crashed', ['error' => $e->getMessage()]);
-            throw new RedisStreamException('Scheduler crashed: ' . $e->getMessage(), 0, $e);
-        }
-    }
-
-    /**
-     * 重新处理所有消息 (0-0 模式)
-     * 
-     * 从流的开始位置读取所有消息，包括已被其他消费者处理的消息
-     * 主要用于数据恢复、审计、调试等特殊场景
-     * 
-     * @param callable $callback 消息处理回调函数
-     * @param int $maxMessages 最大处理消息数量，0 表示处理所有消息
-     * @param bool $autoAck 是否自动确认消息，默认为 true
-     * @return int 处理的消息数量
-     * @throws RedisStreamException 当处理失败时抛出异常
-     */
-    public function replayMessages(callable $callback, int $maxMessages = 0, bool $autoAck = true): int
-    {
-        try {
-            $processedCount = 0;
-            $this->logger->info('Starting replay messages', [
-                'max_messages' => $maxMessages,
-                'auto_ack' => $autoAck,
-                'consumer' => $this->consumerName
-            ]);
-
-            // 使用 XRANGE 读取所有消息，不受消费者组状态影响
-            $messages = $this->redis->xRange($this->streamName, '-', '+', $maxMessages > 0 ? $maxMessages : 1000);
-            
-            foreach ($messages as $messageId => $data) {
-                // 检查最大消息数量限制
-                if ($maxMessages > 0 && $processedCount >= $maxMessages) {
-                    break;
-                }
-
-                // 构造与 consume() 相同的消息格式
-                $messageData = array_merge($data, [
-                    'id' => $messageId,
-                    'attempts' => isset($data['attempts']) ? (int)$data['attempts'] : 0,
-                ]);
-
-                $this->logger->info('Replaying message', [
-                    'message_id' => $messageId,
-                    'attempts' => $messageData['attempts'],
-                    'original_status' => $messageData['status'] ?? 'unknown'
-                ]);
-
-                try {
-                    // 执行用户回调
-                    $result = $callback($messageData);
-                    $processedCount++;
-                    
-                    // 根据参数决定是否自动确认
-                    if ($autoAck && ($result === true || $result === null)) {
-                        // 尝试确认消息（如果消息仍在待处理状态）
-                        try {
-                            $this->ack($messageId);
-                        } catch (RedisStreamException $e) {
-                            // 如果消息不在待处理状态，记录日志但不中断处理
-                            $this->logger->info('Message not in pending state, skipping ack', [
-                                'message_id' => $messageId,
-                                'reason' => $e->getMessage()
-                            ]);
-                        }
-                    }
-                    
-                    // 如果回调返回 false，停止处理
-                    if ($result === false) {
-                        $this->logger->info('Replay stopped by callback returning false');
-                        break;
-                    }
-                } catch (Throwable $e) {
-                    $this->logger->error('Error replaying message', [
-                        'message_id' => $messageId,
-                        'error' => $e->getMessage()
-                    ]);
-                    // 回调异常时不中断继续处理其他消息
-                    continue;
-                }
-            }
-
-            $this->logger->info('Replay messages completed', [
-                'processed_count' => $processedCount,
-                'total_messages' => count($messages)
-            ]);
-
-            return $processedCount;
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to replay messages', [
-                'error' => $e->getMessage(),
-                'max_messages' => $maxMessages,
-                'auto_ack' => $autoAck
-            ]);
-            throw new RedisStreamException('Failed to replay messages: ' . $e->getMessage(), 0, $e);
-        }
-    }
-
-    /**
-     * 审计所有消息 (只读模式)
-     * 
-     * 从流的开始位置读取所有消息但不修改其状态
-     * 主要用于审计、调试和数据分析
-     * 
-     * @param callable $callback 审计回调函数，接收消息数据
-     * @param int $maxMessages 最大审计消息数量，0 表示审计所有消息
-     * @return int 审计的消息数量
-     * @throws RedisStreamException 当审计失败时抛出异常
-     */
-    public function auditMessages(callable $callback, int $maxMessages = 0): int
-    {
-        try {
-            $auditCount = 0;
-            $this->logger->info('Starting audit messages', [
-                'max_messages' => $maxMessages,
-                'consumer' => $this->consumerName
-            ]);
-
-            // 直接使用 XRANGE 而不是 XREADGROUP，避免影响消息状态
-            $messages = $this->redis->xRange($this->streamName, '-', '+', $maxMessages > 0 ? $maxMessages : 1000);
-            
-            foreach ($messages as $messageId => $data) {
-                // 构造与 consume() 相同的消息格式
-                $messageData = array_merge($data, [
-                    'id' => $messageId,
-                    'attempts' => isset($data['attempts']) ? (int)$data['attempts'] : 0,
-                ]);
-
-                try {
-                    // 执行审计回调
-                    $result = $callback($messageData);
-                    $auditCount++;
-                    
-                    // 检查最大消息数量
-                    if ($maxMessages > 0 && $auditCount >= $maxMessages) {
-                        break;
-                    }
-                    
-                    // 如果回调返回 false，停止审计
-                    if ($result === false) {
-                        break;
-                    }
-                } catch (Throwable $e) {
-                    $this->logger->error('Audit callback error', [
-                        'message_id' => $messageId,
-                        'error' => $e->getMessage()
-                    ]);
-                    // 继续审计下一条消息
-                }
-            }
-
-            $this->logger->info('Audit completed', [
-                'audit_count' => $auditCount,
-                'total_messages' => count($messages)
-            ]);
-
-            return $auditCount;
-        } catch (Throwable $e) {
-            $this->logger->error('Failed to audit messages', ['error' => $e->getMessage()]);
-            throw new RedisStreamException('Failed to audit messages: ' . $e->getMessage(), 0, $e);
-        }
-    }
-
+  
     /**
      * 从指定消息ID开始消费
      * 

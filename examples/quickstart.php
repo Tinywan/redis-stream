@@ -46,14 +46,7 @@ try {
     ], 0);
     echo "✅ 消息发送成功，ID: $messageId\n";
     
-    // 3.1 发送延时消息
-    echo "\n📤 发送延时消息（30秒后执行）...\n";
-    $delayedMessageId = $queue->send('Delayed Hello, Redis Stream!', [
-        'type' => 'delayed_greeting',
-        'timestamp' => date('Y-m-d H:i:s')
-    ], 30);
-    echo "✅ 延时消息发送成功，ID: $delayedMessageId\n";
-    
+      
     // 4. 消费消息
     echo "\n📥 消费消息...\n";
     $message = $queue->consume();
@@ -74,9 +67,7 @@ try {
     echo "\n📊 队列状态:\n";
     echo "   Stream 长度: " . $queue->getStreamLength() . "\n";
     echo "   待处理消息: " . $queue->getPendingCount() . "\n";
-    echo "   延时队列长度: " . $queue->getDelayedStreamLength() . "\n";
-    echo "   即将到期 (60s): " . $queue->getUpcomingMessageCount(60) . "\n";
-    
+       
     echo "\n=== 快速开始完成 ===\n";
     
     // 使用提示

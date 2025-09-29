@@ -183,47 +183,7 @@ class QueueService
         return true;
     }
 
-    /**
-     * 发送延时邮件任务
-     */
-    public function sendDelayedEmail(array $data, int $delaySeconds): string
-    {
-        return $this->sendEmail($data, $delaySeconds);
-    }
-
-    /**
-     * 在指定时间发送邮件任务
-     */
-    public function sendEmailAt(array $data, int $timestamp): string
-    {
-        return $this->sendEmail($data, $timestamp);
-    }
-
-    /**
-     * 发送延时图片处理任务
-     */
-    public function processDelayedImage(array $data, int $delaySeconds): string
-    {
-        return $this->processImage($data, $delaySeconds);
-    }
-
-    /**
-     * 在指定时间发送图片处理任务
-     */
-    public function processImageAt(array $data, int $timestamp): string
-    {
-        return $this->processImage($data, $timestamp);
-    }
-
-    /**
-     * 运行延时调度器
-     */
-    public function runDelayedScheduler(string $queueName = 'default'): int
-    {
-        $queue = WebmanAdapter::createQueue($queueName);
-        return $queue->runDelayedScheduler();
-    }
-
+    
     /**
      * 获取队列状态
      */
@@ -233,11 +193,9 @@ class QueueService
         
         return [
             'stream_name' => $queue->getStreamName(),
-            'delayed_stream_name' => $queue->getDelayedStreamName(),
             'consumer_group' => $queue->getConsumerGroup(),
             'stream_length' => $queue->getStreamLength(),
             'pending_count' => $queue->getPendingCount(),
-            'delayed_stream_length' => $queue->getDelayedStreamLength(),
         ];
     }
 }

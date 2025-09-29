@@ -175,41 +175,20 @@ if (isset($argv[1]) && $argv[1] === 'producer') {
         $totalMessages++;
     }
     
-    // 创建延时消息
-    echo "⏰ Creating delayed messages...\n";
-    createTestMessage($producer, 'email', [
-        'to' => 'delayed@example.com',
-        'subject' => 'Delayed Email (30 minutes)',
-        'template' => 'delayed_welcome',
-        'priority' => 'normal'
-    ], 1800); // 30分钟延时
-    $totalMessages++;
-    
-    createTestMessage($producer, 'image', [
-        'filename' => 'delayed_avatar.png',
-        'operation' => 'thumbnail',
-        'width' => 100,
-        'height' => 100,
-        'format' => 'png',
-        'priority' => 'low'
-    ], 900); // 15分钟延时
-    
+        
     // 记录批量创建完成日志
     $logger->info('Batch messages creation completed', [
         'total_messages' => $totalMessages,
         'stream_length' => $taskQueue->getStreamLength(),
         'pending_count' => $taskQueue->getPendingCount(),
-        'delayed_stream_length' => $taskQueue->getDelayedStreamLength(),
-        'message_types' => ['email' => 5, 'image' => 4, 'log' => 6]
+                'message_types' => ['email' => 5, 'image' => 4, 'log' => 6]
     ]);
     
     echo "\n✅ All messages created successfully!\n";
     echo "📊 Queue Status:\n";
     echo "   Stream Length: " . $taskQueue->getStreamLength() . "\n";
     echo "   Pending Count: " . $taskQueue->getPendingCount() . "\n";
-    echo "   Delayed Stream Length: " . $taskQueue->getDelayedStreamLength() . "\n";
-    echo "   Upcoming (30 minutes): " . $taskQueue->getUpcomingMessageCount(1800) . "\n";
-    echo "   Total Messages: {$totalMessages}\n";
+        echo "   Total Messages: {$totalMessages}\n";
     
 } elseif (isset($argv[1]) && $argv[1] === 'consumer') {
     echo "🚀 Starting consumer with MessageHandlerInterface...\n\n";

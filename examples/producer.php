@@ -125,24 +125,14 @@ createTask($producer, 'notification', [
     'priority' => 'low'
 ]);
 
-// 创建延时邮件任务（1小时后发送）
-createTask($producer, 'email', [
-    'to' => 'delayed@example.com',
-    'subject' => 'Delayed Email (1 hour later)',
-    'priority' => 'normal'
-], 3600); // 1小时 = 3600秒
-
 // 记录完成日志
 $logger->info('All sample tasks created successfully', [
-    'total_tasks' => 5,
+    'total_tasks' => 4,
     'stream_length' => $taskQueue->getStreamLength(),
-    'pending_count' => $taskQueue->getPendingCount(),
-    'delayed_stream_length' => $taskQueue->getDelayedStreamLength()
+    'pending_count' => $taskQueue->getPendingCount()
 ]);
 
 echo "\n✅ All tasks created successfully!\n";
 echo "📊 Current Queue Status:\n";
 echo "   Stream Length: " . $taskQueue->getStreamLength() . "\n";
 echo "   Pending Count: " . $taskQueue->getPendingCount() . "\n";
-echo "   Delayed Stream Length: " . $taskQueue->getDelayedStreamLength() . "\n";
-echo "   Upcoming (1 hour): " . $taskQueue->getUpcomingMessageCount(3600) . "\n";
