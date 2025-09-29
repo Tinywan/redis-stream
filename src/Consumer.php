@@ -135,7 +135,9 @@ class Consumer
                 
                 // 如果没有消息，短暂休眠
                 if ($message === null) {
-                    usleep(100000); // 100ms sleep when no message
+                    // 如果启用了自动延迟处理，使用更短的休眠时间
+                    $sleepTime = 50000;
+                    usleep($sleepTime); // 50ms sleep for delayed messages, 100ms for normal
                     continue;
                 }
 

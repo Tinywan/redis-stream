@@ -105,6 +105,7 @@ class RedisStreamQueue
             'delayed_queue_suffix' => '_delayed', // 延迟队列名称后缀
             'scheduler_interval' => 1,      // 调度器扫描间隔（秒）
             'scheduler_batch_size' => 100,  // 调度器每次处理的最大数量
+            'auto_process_delayed' => true,  // 自动处理延迟消息
         ], $queueConfig);
 
         $this->streamName = $this->queueConfig['stream_name'];
@@ -215,6 +216,11 @@ class RedisStreamQueue
     public function consume(?callable $callback = null, ?string $lastid = null): ?array
     {
         try {
+            // 自动处理延迟消息
+            if ($this->queueConfig['auto_process_delayed'] ?? false) {
+                $this->processDelayedMessages();
+            }
+            
             // 默认使用 '>' 只读取新消息
             if ($lastid === null) {
                 $lastid = '>';
@@ -227,6 +233,81 @@ class RedisStreamQueue
                 [$this->streamName => $lastid], // 指定消息位置
                 1,                             // 每次读取一条消息
                 $this->queueConfig['block_timeout'] // 阻塞超时时间
+            );
+
+            // 如果没有消息，返回 null
+            if (empty($messages)) {
+                return null;
+            }
+
+            // 处理消息数据
+            try {
+                $messageData = $this->processMessage($messages[$this->streamName]);
+            } catch (RedisStreamException $e) {
+                // 如果没有有效消息，对于特定的 lastid 值返回 null
+                if ($lastid === '0-0' || $lastid === '0' || $lastid === '$' || strpos($lastid, '-') !== false) {
+                    $this->logger->info('No valid messages found for lastid: ' . $lastid);
+                    return null;
+                }
+                // 其他情况重新抛出异常
+                throw $e;
+            }
+            
+            // 如果提供了回调函数，执行处理逻辑
+            if ($callback !== null) {
+                $result = $callback($messageData);
+                // 如果回调返回 true，自动确认消息
+                if ($result === true) {
+                    $this->ack($messageData['id']);
+                }
+            }
+
+            return $messageData;
+        } catch (RedisStreamException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            $this->logger->error('Failed to consume message', ['error' => $e->getMessage()]);
+            throw new RedisStreamException('Failed to consume message: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * 从队列中消费消息（高精度延迟版本）
+     * 
+     * 使用消费者组从 Redis Stream 中读取消息，支持回调函数处理
+     * 如果回调函数返回 true，则自动确认消息
+     * 这个方法专为高精度延迟消息处理优化
+     * 
+     * @param callable|null $callback 消息处理回调函数，接收消息数据作为参数
+     * @param string|null $lastid 消息ID位置：
+     *                            - '>' (默认): 只读取新消息
+     *                            - '0-0': 从开始读取所有消息
+     *                            - '0': 从开始读取所有消息
+     *                            - '$': 从最后一条消息之后读取
+     *                            - 具体消息ID: 从指定ID之后读取
+     * @return array|null 返回消息数据，如果没有消息则返回 null
+     * @throws RedisStreamException 当消息消费失败时抛出异常
+     */
+    public function consumeWithHighPrecision(?callable $callback = null, ?string $lastid = null): ?array
+    {
+        try {
+            // 自动处理延迟消息
+            if ($this->queueConfig['auto_process_delayed'] ?? false) {
+                $this->processDelayedMessages();
+            }
+            
+            // 默认使用 '>' 只读取新消息
+            if ($lastid === null) {
+                $lastid = '>';
+            }
+            
+            // 高精度模式：使用非阻塞读取以避免延迟
+            $messages = $this->redis->xReadGroup(
+                $this->consumerGroup,          // 消费者组
+                $this->consumerName,           // 消费者名称
+                [$this->streamName => $lastid], // 指定消息位置
+                1,                             // 每次读取一条消息
+                1                              // 非阻塞模式，超时1ms
             );
 
             // 如果没有消息，返回 null
@@ -666,6 +747,110 @@ class RedisStreamQueue
     // =========================================================================
 
     /**
+     * 获取下一个即将到期的延迟消息时间
+     * 
+     * @return float|null 下一个到期时间戳，如果没有延迟消息则返回null
+     */
+    private function getNextDelayedMessageTime(): ?float
+    {
+        try {
+            // 获取最早到期的消息
+            $earliestMessages = $this->redis->zRangeByScore(
+                $this->delayedQueueName,
+                '-inf',
+                '+inf',
+                ['limit' => [0, 1]]
+            );
+            
+            if (empty($earliestMessages)) {
+                return null;
+            }
+            
+            $taskData = json_decode($earliestMessages[0], true);
+            return $taskData['execute_time'] ?? null;
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to get next delayed message time', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    /**
+     * 处理延迟消息（内部方法）
+     * 
+     * 将到期的延迟消息从 Sorted Set 转移到 Stream
+     */
+    public function processDelayedMessages(): void
+    {
+        try {
+            // 使用微秒级时间戳提高精度
+            $currentTime = microtime(true);
+            
+            // 预检查：获取即将在短时间内到期的消息
+            $futureTime = $currentTime + 0.1; // 预检查100ms内的消息
+            $preCheckMessages = $this->redis->zRangeByScore(
+                $this->delayedQueueName,
+                (string)$currentTime,
+                (string)$futureTime,
+                ['limit' => [0, 10]]
+            );
+            
+            // 如果有即将到期的消息，使用更精确的处理方式
+            if (!empty($preCheckMessages)) {
+                $expiredMessages = $this->redis->zRangeByScore(
+                    $this->delayedQueueName,
+                    '0',
+                    (string)$currentTime,
+                    ['limit' => [0, 50]]
+                );
+            } else {
+                $expiredMessages = $this->redis->zRangeByScore(
+                    $this->delayedQueueName,
+                    '0',
+                    (string)$currentTime,
+                    ['limit' => [0, 100]]
+                );
+            }
+            
+            foreach ($expiredMessages as $messageJson) {
+                $taskData = json_decode($messageJson, true);
+                if ($taskData) {
+                    // 计算实际延迟时间
+                    $actualDelay = $currentTime - $taskData['created_at'];
+                    $timeDiff = $actualDelay - $taskData['delay_seconds'];
+                    
+                    // 如果消息刚到期（误差在0.1秒内），记录精确时间
+                    if (abs($timeDiff) < 0.1) {
+                        $precision = 'high';
+                    } elseif (abs($timeDiff) < 0.5) {
+                        $precision = 'medium';
+                    } else {
+                        $precision = 'low';
+                    }
+                    
+                    // 移除延迟队列
+                    $this->redis->zRem($this->delayedQueueName, $messageJson);
+                    
+                    // 投递到Stream队列
+                    $this->deliverDelayedTask($taskData);
+                    
+                    $this->logger->info('Delayed message moved to main queue', [
+                        'task_id' => $taskData['id'],
+                        'delay_seconds' => $taskData['delay_seconds'],
+                        'actual_delay' => round($actualDelay, 3),
+                        'time_diff' => round($timeDiff, 3),
+                        'precision' => $precision,
+                        'scheduled_time' => $taskData['execute_time'],
+                        'current_time' => $currentTime,
+                        'queue_size' => count($expiredMessages)
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to process delayed messages', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * 立即发送消息到Stream
      *
      * @param mixed $message 消息内容
@@ -710,7 +895,9 @@ class RedisStreamQueue
      */
     private function sendDelayed($message, array $metadata = [], int $delaySeconds = 0): string
     {
-        $executeTime = time() + $delaySeconds;
+        // 使用微秒级时间戳提高精度
+        $currentTime = microtime(true);
+        $executeTime = $currentTime + $delaySeconds;
         $taskId = uniqid('delayed_', true);
         
         // 构建任务数据
@@ -720,7 +907,8 @@ class RedisStreamQueue
             'metadata' => $metadata,
             'execute_time' => $executeTime,
             'delay_seconds' => $delaySeconds,
-            'created_at' => time(),
+            'created_at' => $currentTime,
+            'created_at_int' => time(),
             'status' => 'delayed'
         ];
 
@@ -737,7 +925,9 @@ class RedisStreamQueue
         $this->logger->info('Delayed task added to queue', [
             'task_id' => $taskId,
             'delay_seconds' => $delaySeconds,
-            'execute_time' => date('Y-m-d H:i:s', $executeTime),
+            'execute_time' => date('Y-m-d H:i:s', (int)$executeTime),
+            'execute_time_float' => $executeTime,
+            'current_time' => $currentTime,
             'queue' => $this->delayedQueueName
         ]);
 
@@ -844,6 +1034,7 @@ class RedisStreamQueue
             'status' => 'pending',
             'delayed_task_id' => $taskData['id'],
             'original_delay' => $taskData['delay_seconds'],
+            'delay' => $taskData['delay_seconds'], // 添加 delay 字段以保持一致性
             'created_at' => $taskData['created_at']
         ]);
 
