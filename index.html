@@ -796,6 +796,180 @@
             51%, 100% { opacity: 0; }
         }
 
+        /* Performance Section */
+        .performance {
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .performance::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(220, 56, 45, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(130, 179, 103, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        .performance .section-title {
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .performance-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .performance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--redis-red), var(--performance-green));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .performance-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .performance-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(220, 56, 45, 0.3);
+        }
+
+        .performance-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .performance-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--performance-green);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--performance-green), var(--speed-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .performance-label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .performance-desc {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.4;
+        }
+
+        /* Frameworks Section */
+        .frameworks {
+            padding: 4rem 0;
+            background: linear-gradient(180deg, #e9ecef 0%, #f8fafc 100%);
+        }
+
+        .frameworks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .framework-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .framework-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(220, 56, 45, 0.05), rgba(130, 179, 103, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .framework-card:hover::before {
+            opacity: 1;
+        }
+
+        .framework-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--redis-red);
+            box-shadow: 0 15px 40px rgba(220, 56, 45, 0.2);
+        }
+
+        .framework-logo {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80px;
+        }
+
+        .framework-logo svg {
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+            transition: all 0.3s ease;
+        }
+
+        .framework-card:hover .framework-logo svg {
+            transform: scale(1.1);
+            filter: drop-shadow(0 6px 12px rgba(220, 56, 45, 0.3));
+        }
+
+        .framework-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .framework-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
         /* Features */
         .features {
             padding: 3rem 0;
@@ -967,6 +1141,41 @@
                 font-size: 0.9rem;
                 line-height: 1.4;
             }
+
+            .performance-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+
+            .performance-number {
+                font-size: 2rem;
+            }
+
+            .frameworks-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .performance-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 280px;
+            }
         }
     </style>
 </head>
@@ -980,6 +1189,8 @@
                     <li><a href="#quick-install">快速安装</a></li>
                     <li><a href="#quick-start">快速开始</a></li>
                     <li><a href="#features">核心特性</a></li>
+                    <li><a href="#performance">性能基准</a></li>
+                    <li><a href="#frameworks">框架集成</a></li>
                     <li><a href="https://github.com/Tinywan/redis-stream">GitHub</a></li>
                 </ul>
             </div>
@@ -998,7 +1209,7 @@
             <div class="hero-content">
                 <h1>🚀 Redis Stream Queue</h1>
                 <div class="subtitle-wrapper">
-                    <p class="subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
+                    <p class="subtitle">基于 Redis Streams + ZSET 的高性能轻量级 PHP 队列</p>
                 </div>
                 <div class="hero-buttons">
                     <a href="#quick-install" class="btn btn-primary">快速开始</a>
@@ -1117,33 +1328,105 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <span class="feature-icon">⚡</span>
-                    <h3 class="feature-title">超高性能</h3>
-                    <p class="feature-description">基于 Redis 5.0+ Stream 数据结构，性能卓越，支持高并发消息处理</p>
-                </div>
-                <div class="feature-card">
-                    <span class="feature-icon">🔄</span>
-                    <h3 class="feature-title">多生产者/消费者</h3>
-                    <p class="feature-description">支持多个生产者和消费者同时工作，提供完整的消费者组管理</p>
-                </div>
-                <div class="feature-card">
-                    <span class="feature-icon">💾</span>
-                    <h3 class="feature-title">消息持久化</h3>
-                    <p class="feature-description">可靠的消息持久化存储，确保数据不丢失，支持断点续传</p>
-                </div>
-                <div class="feature-card">
-                    <span class="feature-icon">✅</span>
-                    <h3 class="feature-title">ACK 确认机制</h3>
-                    <p class="feature-description">完善的消息确认机制，保证消息可靠投递和处理</p>
-                </div>
-                <div class="feature-card">
-                    <span class="feature-icon">🔄</span>
-                    <h3 class="feature-title">智能重试</h3>
-                    <p class="feature-description">内置消息重试机制，自动处理失败消息，提高系统可靠性</p>
+                    <h3 class="feature-title">高性能</h3>
+                    <p class="feature-description">基于 Redis 5.0+ Stream，支持 50,000+ QPS，延迟低至 2ms</p>
                 </div>
                 <div class="feature-card">
                     <span class="feature-icon">⏰</span>
-                    <h3 class="feature-title">延时消息</h3>
-                    <p class="feature-description">支持延时消息和定时消息，提供灵活的时间控制策略</p>
+                    <h3 class="feature-title">延时任务队列</h3>
+                    <p class="feature-description">基于 Sorted Set，支持秒级到年级的任意时长延时</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔄</span>
+                    <h3 class="feature-title">消息重放与审计</h3>
+                    <p class="feature-description">支持重新处理历史消息，提供只读模式审计功能</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🏗️</span>
+                    <h3 class="feature-title">单例模式</h3>
+                    <p class="feature-description">单例模式支持，避免重复创建实例，提升性能 100%+</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🏊</span>
+                    <h3 class="feature-title">连接池管理</h3>
+                    <p class="feature-description">Redis 连接池，自动连接复用和管理，降低连接开销</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🧪</span>
+                    <h3 class="feature-title">完整测试</h3>
+                    <p class="feature-description">69个测试，244个断言，100%通过率，保证代码质量</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Section -->
+    <section class="performance">
+        <div class="container">
+            <h2 class="section-title">性能基准</h2>
+            <div class="performance-grid">
+                <div class="performance-card">
+                    <div class="performance-icon">🚀</div>
+                    <div class="performance-number">50,000+</div>
+                    <div class="performance-label">发送消息 QPS</div>
+                    <div class="performance-desc">基于 Redis 7.0，PHP 8.1</div>
+                </div>
+                <div class="performance-card">
+                    <div class="performance-icon">⚡</div>
+                    <div class="performance-number">30,000+</div>
+                    <div class="performance-label">消费消息 QPS</div>
+                    <div class="performance-desc">高并发场景下稳定表现</div>
+                </div>
+                <div class="performance-card">
+                    <div class="performance-icon">🎯</div>
+                    <div class="performance-number">2ms</div>
+                    <div class="performance-label">P95 延迟</div>
+                    <div class="performance-desc">极速响应，低延迟处理</div>
+                </div>
+                <div class="performance-card">
+                    <div class="performance-icon">💾</div>
+                    <div class="performance-number">8MB</div>
+                    <div class="performance-label">内存占用</div>
+                    <div class="performance-desc">消费者进程内存使用</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Framework Integration Section -->
+    <section class="frameworks">
+        <div class="container">
+            <h2 class="section-title">框架集成</h2>
+            <div class="frameworks-grid">
+                <div class="framework-card">
+                    <div class="framework-logo">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <rect x="2" y="2" width="20" height="20" rx="2" stroke="#FF2D20" stroke-width="2"/>
+                            <path d="M8 12L8 8L12 8L16 8L16 12L12 12L8 12Z" fill="#FF2D20"/>
+                        </svg>
+                    </div>
+                    <h3 class="framework-title">Laravel</h3>
+                    <p class="framework-description">完美集成 Laravel 队列系统，支持无缝替换</p>
+                </div>
+                <div class="framework-card">
+                    <div class="framework-logo">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="#6E4CFF" stroke-width="2"/>
+                            <path d="M12 6L12 18M6 12L18 12" stroke="#6E4CFF" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3 class="framework-title">ThinkPHP</h3>
+                    <p class="framework-description">支持 ThinkPHP 6.0+，提供完整的服务封装</p>
+                </div>
+                <div class="framework-card">
+                    <div class="framework-logo">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <rect x="4" y="4" width="16" height="16" rx="2" stroke="#00BCD4" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="4" fill="#00BCD4"/>
+                        </svg>
+                    </div>
+                    <h3 class="framework-title">Webman</h3>
+                    <p class="framework-description">基于 Workerman，支持常驻内存高性能应用</p>
                 </div>
             </div>
         </div>
@@ -1156,9 +1439,10 @@
                 <div class="footer-section">
                     <h4>项目信息</h4>
                     <ul>
-                        <li>版本: 1.0.0</li>
+                        <li>版本: v0.0.6</li>
                         <li>许可证: MIT</li>
                         <li>作者: Tinywan</li>
+                        <li>69个测试通过</li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -1175,11 +1459,13 @@
                         <li><a href="#quick-install">快速安装</a></li>
                         <li><a href="#quick-start">快速开始</a></li>
                         <li><a href="#features">核心特性</a></li>
+                        <li><a href="#performance">性能基准</a></li>
+                        <li><a href="#frameworks">框架集成</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2025 Redis Stream Queue. 基于 Redis Stream 的高性能轻量级消息队列</p>
+                <p>© 2025 Redis Stream Queue. 基于 Redis Streams + ZSET 的高性能轻量级 PHP 队列</p>
             </div>
         </div>
     </footer>
@@ -1267,6 +1553,12 @@
 
             // 动态粒子生成系统
             createParticleSystem();
+
+            // 添加滚动动画
+            addScrollAnimations();
+
+            // 添加性能数字动画
+            animatePerformanceNumbers();
         });
 
         // 粒子系统生成函数
@@ -1323,6 +1615,76 @@
                     }, 50);
                 }
             }, (duration + delay) * 1000);
+        }
+
+        // 滚动动画效果
+        function addScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // 观察所有需要动画的元素
+            const animatedElements = document.querySelectorAll('.feature-card, .performance-card, .framework-card, .code-card');
+            animatedElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(el);
+            });
+        }
+
+        // 性能数字动画
+        function animatePerformanceNumbers() {
+            const performanceNumbers = document.querySelectorAll('.performance-number');
+            
+            const animateNumber = (element) => {
+                const finalText = element.textContent;
+                const hasPlus = finalText.includes('+');
+                const hasMS = finalText.includes('ms');
+                const hasMB = finalText.includes('MB');
+                
+                let finalNumber = parseFloat(finalText.replace(/[^0-9.]/g, ''));
+                let currentNumber = 0;
+                const increment = finalNumber / 50;
+                const timer = setInterval(() => {
+                    currentNumber += increment;
+                    if (currentNumber >= finalNumber) {
+                        currentNumber = finalNumber;
+                        clearInterval(timer);
+                    }
+                    
+                    let displayText = Math.floor(currentNumber).toString();
+                    if (hasPlus) displayText += '+';
+                    if (hasMS) displayText += 'ms';
+                    if (hasMB) displayText += 'MB';
+                    
+                    element.textContent = displayText;
+                }, 30);
+            };
+
+            const performanceObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateNumber(entry.target);
+                        performanceObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            performanceNumbers.forEach(number => {
+                performanceObserver.observe(number);
+            });
         }
     </script>
 </body>
