@@ -31,8 +31,8 @@ $logger = $taskQueue->getLogger();
 // 显示配置信息
 echo "=== 任务队列配置 ===\n";
 echo "环境: $env\n";
-echo "Redis配置: " . json_encode($taskQueue->getRedisConfig(), JSON_PRETTY_PRINT) . "\n";
-echo "队列配置: " . json_encode($taskQueue->getQueueConfig(), JSON_PRETTY_PRINT) . "\n";
+//echo "Redis配置: " . json_encode($taskQueue->getRedisConfig(), JSON_PRETTY_PRINT) . "\n";
+//echo "队列配置: " . json_encode($taskQueue->getQueueConfig(), JSON_PRETTY_PRINT) . "\n";
 echo "日志配置: 调试模式=" . ($enableDebug ? '启用' : '禁用') . "\n";
 echo "===================\n\n";
 
@@ -202,6 +202,126 @@ function processNotificationTask(array $data, \Monolog\Logger $logger): bool
     }
 }
 
+function processCleanupTask(array $data, \Monolog\Logger $logger): bool
+{
+    $startTime = microtime(true);
+    
+    try {
+        echo "🧹 Running cleanup task: " . ($data['description'] ?? 'Generic cleanup') . "\n";
+        
+        // 模拟清理操作
+        sleep(2);
+        
+        $endTime = microtime(true);
+        $duration = round(($endTime - $startTime) * 1000, 2);
+        
+        // 记录清理任务日志
+        $logger->info('Cleanup task processed successfully', [
+            'task_type' => 'cleanup',
+            'cleanup_type' => $data['cleanup_type'] ?? 'unknown',
+            'description' => $data['description'] ?? '',
+            'duration_ms' => $duration,
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+        
+        return true;
+        
+    } catch (Throwable $e) {
+        $endTime = microtime(true);
+        $duration = round(($endTime - $startTime) * 1000, 2);
+        
+        // 记录清理任务失败日志
+        $logger->error('Cleanup task failed', [
+            'task_type' => 'cleanup',
+            'cleanup_type' => $data['cleanup_type'] ?? 'unknown',
+            'error' => $e->getMessage(),
+            'duration_ms' => $duration
+        ]);
+        
+        return false;
+    }
+}
+
+function processBackupTask(array $data, \Monolog\Logger $logger): bool
+{
+    $startTime = microtime(true);
+    
+    try {
+        echo "💾 Running backup task: " . ($data['description'] ?? 'Generic backup') . "\n";
+        
+        // 模拟备份操作
+        sleep(3);
+        
+        $endTime = microtime(true);
+        $duration = round(($endTime - $startTime) * 1000, 2);
+        
+        // 记录备份任务日志
+        $logger->info('Backup task processed successfully', [
+            'task_type' => 'backup',
+            'backup_type' => $data['backup_type'] ?? 'unknown',
+            'description' => $data['description'] ?? '',
+            'duration_ms' => $duration,
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+        
+        return true;
+        
+    } catch (Throwable $e) {
+        $endTime = microtime(true);
+        $duration = round(($endTime - $startTime) * 1000, 2);
+        
+        // 记录备份任务失败日志
+        $logger->error('Backup task failed', [
+            'task_type' => 'backup',
+            'backup_type' => $data['backup_type'] ?? 'unknown',
+            'error' => $e->getMessage(),
+            'duration_ms' => $duration
+        ]);
+        
+        return false;
+    }
+}
+
+function processScheduledTask(array $data, \Monolog\Logger $logger): bool
+{
+    $startTime = microtime(true);
+    
+    try {
+        echo "⏰ Running scheduled task: " . ($data['description'] ?? 'Generic scheduled task') . "\n";
+        
+        // 模拟定时任务执行
+        sleep(1);
+        
+        $endTime = microtime(true);
+        $duration = round(($endTime - $startTime) * 1000, 2);
+        
+        // 记录定时任务日志
+        $logger->info('Scheduled task processed successfully', [
+            'task_type' => 'scheduled',
+            'task_name' => $data['task_name'] ?? 'unknown',
+            'description' => $data['description'] ?? '',
+            'duration_ms' => $duration,
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+        
+        return true;
+        
+    } catch (Throwable $e) {
+        $endTime = microtime(true);
+        $duration = round(($endTime - $startTime) * 1000, 2);
+        
+        // 记录定时任务失败日志
+        $logger->error('Scheduled task failed', [
+            'task_type' => 'scheduled',
+            'task_name' => $data['task_name'] ?? 'unknown',
+            'error' => $e->getMessage(),
+            'duration_ms' => $duration
+        ]);
+        
+        return false;
+    }
+}
+
 // 任务消费者
 function processTasks(Consumer $consumer): void
 {
@@ -211,7 +331,7 @@ function processTasks(Consumer $consumer): void
     echo "   Stream: " . $consumer->getQueue()->getStreamName() . "\n";
     echo "   Group: " . $consumer->getQueue()->getConsumerGroup() . "\n";
     echo "   Consumer: " . $consumer->getQueue()->getConsumerName() . "\n";
-    echo "   Delayed Stream: " . $consumer->getQueue()->getDelayedStreamName() . "\n\n";
+    echo "   Delayed Queue: " . $consumer->getQueue()->getDelayedQueueName() . "\n\n";
     
     // 记录处理器启动日志
     $logger->info('Task processor started', [
@@ -245,6 +365,15 @@ function processTasks(Consumer $consumer): void
                     break;
                 case 'notification':
                     $result = processNotificationTask($task['data'], $logger);
+                    break;
+                case 'cleanup':
+                    $result = processCleanupTask($task['data'], $logger);
+                    break;
+                case 'backup':
+                    $result = processBackupTask($task['data'], $logger);
+                    break;
+                case 'scheduled':
+                    $result = processScheduledTask($task['data'], $logger);
                     break;
                 default:
                     echo "❌ Unknown task type: {$task['type']}\n";

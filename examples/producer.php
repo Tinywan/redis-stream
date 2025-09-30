@@ -31,8 +31,8 @@ $logger = $taskQueue->getLogger();
 // 显示配置信息
 echo "=== 任务队列配置 ===\n";
 echo "环境: $env\n";
-echo "Redis配置: " . json_encode($taskQueue->getRedisConfig(), JSON_PRETTY_PRINT) . "\n";
-echo "队列配置: " . json_encode($taskQueue->getQueueConfig(), JSON_PRETTY_PRINT) . "\n";
+//echo "Redis配置: " . json_encode($taskQueue->getRedisConfig(), JSON_PRETTY_PRINT) . "\n";
+//echo "队列配置: " . json_encode($taskQueue->getQueueConfig(), JSON_PRETTY_PRINT) . "\n";
 echo "日志配置: 调试模式=" . ($enableDebug ? '启用' : '禁用') . "\n";
 echo "===================\n\n";
 
@@ -125,14 +125,47 @@ createTask($producer, 'notification', [
     'priority' => 'low'
 ]);
 
+// 创建延迟任务示例
+echo "\n🕒 Creating delayed tasks...\n";
+
+// 延迟10秒的清理任务
+createTask($producer, 'cleanup', [
+    'cleanup_type' => 'temp_files',
+    'description' => 'Clean temporary files older than 7 days'
+], 10);
+
+// 延迟30秒的备份任务
+createTask($producer, 'backup', [
+    'backup_type' => 'database',
+    'description' => 'Daily database backup'
+], 30);
+
+// 延迟60秒的报表任务
+createTask($producer, 'report', [
+    'report_name' => 'daily_summary',
+    'description' => 'Generate daily summary report',
+    'priority' => 'low'
+], 60);
+
+// 指定时间执行的任务 - 执行当前时间+90秒的时间戳
+$futureTimestamp = time() + 90;
+createTask($producer, 'scheduled', [
+    'task_name' => 'send_daily_report',
+    'description' => 'Send daily report to executives',
+    'priority' => 'high'
+], $futureTimestamp);
+
 // 记录完成日志
 $logger->info('All sample tasks created successfully', [
-    'total_tasks' => 4,
+    'total_tasks' => 8,
+    'delayed_tasks' => 4,
     'stream_length' => $taskQueue->getStreamLength(),
-    'pending_count' => $taskQueue->getPendingCount()
+    'pending_count' => $taskQueue->getPendingCount(),
+    'delayed_queue_length' => $taskQueue->getDelayedQueueLength()
 ]);
 
 echo "\n✅ All tasks created successfully!\n";
 echo "📊 Current Queue Status:\n";
 echo "   Stream Length: " . $taskQueue->getStreamLength() . "\n";
 echo "   Pending Count: " . $taskQueue->getPendingCount() . "\n";
+echo "   Delayed Queue Length: " . $taskQueue->getDelayedQueueLength() . "\n";
