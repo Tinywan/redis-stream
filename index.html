@@ -55,6 +55,27 @@
             transition: all 0.3s ease;
         }
 
+        /* Mobile Navigation Toggle */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-toggle:hover {
+            background: var(--glass-bg);
+        }
+
+        .nav-toggle:active {
+            transform: scale(0.95);
+        }
+
         .nav-content {
             display: flex;
             justify-content: space-between;
@@ -625,9 +646,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.6rem;
+            gap: 0.8rem;
             max-width: 650px;
             margin: 0 auto;
+            flex-wrap: wrap;
         }
 
         .install-command {
@@ -636,19 +658,21 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(139, 92, 246, 0.6);
             border-radius: 8px;
-            padding: 1.1rem 1rem;
-            flex: 0 1 auto;
+            padding: 1.1rem 1.2rem;
+            flex: 1;
+            min-width: 0;
             box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
             transition: all 0.3s ease;
             font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-            font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+            font-size: clamp(0.9rem, 2.5vw, 1.3rem);
             color: var(--text-primary);
             font-weight: 500;
             text-align: center;
-            line-height: 1.6;
+            line-height: 1.4;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            word-break: break-all;
         }
 
         .install-command:hover {
@@ -662,16 +686,18 @@
             background: var(--glass-bg);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(139, 92, 246, 0.6);
-            padding: 1.1rem 1rem;
+            padding: 1.1rem 1.2rem;
             color: var(--text-primary);
             cursor: pointer;
             transition: all 0.3s ease;
             border-radius: 8px;
-            font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+            font-size: clamp(0.9rem, 2.5vw, 1.3rem);
             font-weight: 500;
             white-space: nowrap;
             box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
-            line-height: 1.6;
+            line-height: 1.4;
+            flex-shrink: 0;
+            min-width: fit-content;
         }
 
         .copy-command-btn:hover {
@@ -1651,26 +1677,29 @@
         
         @media (max-width: 768px) {
             .hero h1 {
-                font-size: clamp(2.5rem, 6vw, 3.5rem);
-                margin-bottom: clamp(1.8rem, 4vh, 2.5rem);
+                font-size: clamp(2.2rem, 7vw, 3.5rem);
+                margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
+                line-height: 1.1;
             }
             
             .hero .subtitle {
-                font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+                font-size: clamp(1rem, 3vw, 1.4rem);
+                line-height: 1.5;
             }
             
             .subtitle-wrapper {
-                margin-bottom: clamp(2rem, 5vh, 3rem);
+                margin-bottom: clamp(1.8rem, 5vh, 3rem);
+                padding: 0 0.5rem;
             }
             
             .hero-buttons {
                 gap: clamp(0.8rem, 2vw, 1.2rem);
-                margin-top: clamp(1.2rem, 3vh, 2rem);
+                margin-top: clamp(1rem, 3vh, 2rem);
             }
             
             .btn {
-                padding: clamp(0.9rem, 1.5vw, 1.2rem) clamp(1.8rem, 2.5vw, 2.2rem);
-                font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+                padding: clamp(0.9rem, 1.5vw, 1.2rem) clamp(1.5rem, 2.5vw, 2rem);
+                font-size: clamp(0.9rem, 1.3vw, 1.1rem);
             }
             
             .code-grid {
@@ -1678,8 +1707,44 @@
                 gap: 1.5rem;
             }
             
+            .nav-toggle {
+                display: block;
+            }
+
             .nav-links {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid var(--glass-border);
+                flex-direction: column;
+                padding: 1rem;
+                gap: 0;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links li {
+                width: 100%;
+            }
+
+            .nav-links a {
+                display: block;
+                padding: 1rem;
+                border-radius: 8px;
+                text-align: center;
+                transition: all 0.3s ease;
+            }
+
+            .nav-links a:hover {
+                background: var(--card-bg);
+                transform: translateY(-2px);
             }
 
             .container {
@@ -1687,49 +1752,75 @@
             }
 
             .code-card-content {
-                padding: 1.5rem;
-                font-size: 0.9rem;
+                padding: 1.2rem;
+                font-size: 0.85rem;
             }
 
             .typing-code {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 line-height: 1.4;
             }
 
             .performance-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 1.5rem;
+                gap: 1.2rem;
             }
 
             .performance-number {
-                font-size: 2rem;
+                font-size: 1.8rem;
+            }
+
+            .performance-label {
+                font-size: 1rem;
+            }
+
+            .performance-desc {
+                font-size: 0.8rem;
             }
 
             .frameworks-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: 1.2rem;
             }
 
             .features-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: 1.2rem;
+            }
+
+            .feature-card {
+                padding: 1.8rem;
+            }
+
+            .feature-title {
+                font-size: 1.1rem;
+            }
+
+            .feature-description {
+                font-size: 0.9rem;
             }
 
             .install {
-                padding: 3rem 0;
+                padding: 2.5rem 0;
             }
 
             .install-title {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
 
             .code-block.simple {
-                padding: 1.5rem;
+                padding: 1.2rem;
             }
 
             .code-card.simple pre {
                 padding: 1rem;
-                font-size: 0.8rem;
+                font-size: 0.75rem;
+                line-height: 1.4;
+            }
+
+            .code-examples-grid {
+                grid-template-columns: 1fr;
+                gap: 1.2rem;
             }
 
             .example-tabs {
@@ -1741,26 +1832,51 @@
                 font-size: 0.85rem;
             }
 
-            .install-command-wrapper {
+            .section-title {
+                font-size: 2.2rem;
+            }
+
+            .workflow-steps {
                 flex-direction: column;
-                gap: 1rem;
-                align-items: center;
+                gap: 1.5rem;
+            }
+
+            .workflow-step {
+                padding: 1.5rem;
+            }
+
+            .step-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+
+            .install-command-wrapper {
+                flex-direction: row;
+                gap: 0.6rem;
+                align-items: stretch;
+                padding: 0 1rem;
             }
 
             .install-command {
-                width: 100%;
-                max-width: 320px;
+                flex: 1;
+                min-width: 0;
                 text-align: center;
-                font-size: clamp(1rem, 4vw, 1.2rem);
-                padding: 1rem 0.8rem;
+                font-size: clamp(0.85rem, 4.5vw, 1.1rem);
+                padding: 0.9rem 0.8rem;
+                line-height: 1.3;
+                word-break: break-all;
+                overflow-wrap: break-word;
+                hyphens: auto;
             }
 
             .copy-command-btn {
-                width: 100%;
-                max-width: 200px;
-                margin: 0 auto;
-                font-size: clamp(0.95rem, 3vw, 1.1rem);
-                padding: 1rem 0.8rem;
+                flex-shrink: 0;
+                width: auto;
+                min-width: 60px;
+                font-size: clamp(0.85rem, 4.5vw, 1.1rem);
+                padding: 0.9rem 1rem;
+                white-space: nowrap;
             }
         }
 
@@ -1777,6 +1893,56 @@
             .btn {
                 width: 100%;
                 max-width: 280px;
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .install-command-wrapper {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+                padding: 0 0.5rem;
+            }
+
+            .install-command {
+                width: 100%;
+                max-width: 280px;
+                font-size: clamp(0.9rem, 5vw, 1.2rem);
+                padding: 1rem 1rem;
+                text-align: center;
+            }
+
+            .copy-command-btn {
+                width: 100%;
+                max-width: 150px;
+                font-size: clamp(0.9rem, 5vw, 1.2rem);
+                padding: 1rem 1rem;
+            }
+
+            /* 优化触摸体验 */
+            .btn, .copy-command-btn, .tab-btn {
+                min-height: 44px; /* iOS推荐的最小触摸目标尺寸 */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* 增大卡片间距 */
+            .feature-card, .performance-card, .framework-card {
+                margin-bottom: 1rem;
+            }
+
+            /* 导航菜单触摸优化 */
+            .nav-links a {
+                min-height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .nav-toggle {
+                min-height: 44px;
+                min-width: 44px;
             }
         }
     </style>
@@ -1787,13 +1953,14 @@
         <div class="container">
             <div class="nav-content">
                 <div class="logo">🚀 Redis Stream Queue</div>
+                <button class="nav-toggle" onclick="toggleNav()">☰</button>
                 <ul class="nav-links">
-                    <li><a href="#hero">首页</a></li>
-                    <li><a href="#quick-install">快速安装</a></li>
-                    <li><a href="#features">核心特性</a></li>
-                    <li><a href="#performance">性能基准</a></li>
-                    <li><a href="#frameworks">框架集成</a></li>
-                    <li><a href="https://github.com/Tinywan/redis-stream">GitHub</a></li>
+                    <li><a href="#hero" onclick="closeNav()">首页</a></li>
+                    <li><a href="#quick-install" onclick="closeNav()">快速安装</a></li>
+                    <li><a href="#features" onclick="closeNav()">核心特性</a></li>
+                    <li><a href="#performance" onclick="closeNav()">性能基准</a></li>
+                    <li><a href="#frameworks" onclick="closeNav()">框架集成</a></li>
+                    <li><a href="https://github.com/Tinywan/redis-stream" onclick="closeNav()">GitHub</a></li>
                 </ul>
             </div>
         </div>
@@ -2078,18 +2245,41 @@
             });
         }
 
+        // 移动端导航切换
+        function toggleNav() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        function closeNav() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.remove('active');
+        }
+
         // 平滑滚动
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
+                    closeNav(); // 点击导航链接时关闭菜单
                     target.scrollIntoView({
                         behavior: 'smooth',
                         block: 'start'
                     });
                 }
             });
+        });
+
+        // 点击页面其他地方关闭导航菜单
+        document.addEventListener('click', function(e) {
+            const nav = document.querySelector('.nav');
+            const navToggle = document.querySelector('.nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            
+            if (!nav.contains(e.target) && navLinks.classList.contains('active')) {
+                closeNav();
+            }
         });
 
         // 导航栏滚动效果 - 保持透明玻璃风格
