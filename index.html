@@ -3,37 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redis Stream Queue - 基于 Redis Stream 的高性能轻量级消息队列</title>
+    <title>基于 Redis Stream 高性能轻量级消息队列</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
-            --primary-color: #dc382d;
-            --secondary-color: #d92b20;
-            --accent-color: #82b367;
-            --dark-bg: #f5f7fa;
-            --card-bg: #ffffff;
-            --border-color: #e4e7eb;
-            --text-primary: #2c3e50;
-            --text-secondary: #5a6c7d;
-            --success-color: #82b367;
-            --code-bg: #f1f3f4;
+            --primary-color: #8b5cf6;
+            --secondary-color: #3b82f6;
+            --accent-color: #06b6d4;
+            --dark-bg: #000000;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
             --redis-red: #dc382d;
-            --redis-dark: #a9261e;
-            --redis-light: #ff6b6b;
-            --performance-green: #82b367;
+            --performance-green: #10b981;
             --speed-yellow: #f7d060;
-            --light-bg: #f8fafc;
-            --soft-gray: #e4e7eb;
-            --redis-gradient: linear-gradient(135deg, #dc382d 0%, #ff6b6b 50%, #dc382d 100%);
+            --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --gradient-accent: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+            --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.3);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             line-height: 1.6;
-            background: linear-gradient(180deg, #f5f7fa 0%, #e9ecef 50%, #f1f3f4 100%);
+            background: var(--dark-bg);
             color: var(--text-primary);
             overflow-x: hidden;
+            font-weight: 400;
         }
 
         .container {
@@ -47,12 +47,12 @@
             position: fixed;
             top: 0;
             width: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 247, 250, 0.95) 100%);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--soft-gray);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
             z-index: 1000;
-            padding: 1rem 0;
-            box-shadow: 0 2px 15px rgba(220, 56, 45, 0.1);
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
         }
 
         .nav-content {
@@ -64,10 +64,8 @@
         .logo {
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--redis-red), var(--redis-dark));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            transition: all 0.3s ease;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
         .nav-links {
@@ -77,17 +75,33 @@
         }
 
         .nav-links a {
-            color: var(--text-secondary);
+            color: #ffffff;
             text-decoration: none;
             transition: all 0.3s ease;
             font-weight: 500;
+            position: relative;
         }
 
         .nav-links a:hover {
-            color: var(--redis-red);
+            color: var(--text-primary);
         }
 
-        /* Hero Section */
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section - 保持动态效果但使用webman风格 */
         .hero {
             margin-top: 0;
             height: 100vh;
@@ -95,7 +109,12 @@
             text-align: center;
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, rgba(220, 56, 45, 0.05) 0%, rgba(130, 179, 103, 0.05) 50%, rgba(220, 56, 45, 0.05) 100%);
+            background: 
+                radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.15), transparent 40%),
+                radial-gradient(ellipse at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+                radial-gradient(ellipse at bottom center, rgba(236, 72, 153, 0.1), transparent 50%),
+                radial-gradient(circle at center, rgba(139, 92, 246, 0.03), transparent 70%),
+                linear-gradient(180deg, #000 0%, #0a0014 50%, #000 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -108,7 +127,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(220, 56, 45, 0.08) 0%, rgba(255, 107, 107, 0.05) 50%, transparent 70%);
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
             animation: pulse 6s ease-in-out infinite;
         }
 
@@ -124,6 +143,16 @@
             perspective: 1000px;
         }
 
+        #particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
         /* 队列通道效果 */
         .queue-channel {
             position: absolute;
@@ -131,14 +160,14 @@
             left: 0;
             width: 100%;
             height: 60%;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(220, 56, 45, 0.05) 10%, 
-                rgba(130, 179, 103, 0.08) 50%, 
-                rgba(220, 56, 45, 0.05) 90%, 
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(220, 56, 45, 0.05) 10%,
+                rgba(130, 179, 103, 0.08) 50%,
+                rgba(220, 56, 45, 0.05) 90%,
                 transparent 100%);
             clip-path: polygon(0 20%, 100% 0%, 100% 80%, 0 100%);
-            animation: channelPulse 4s ease-in-out infinite;
+            animation: channelPulse 2s ease-in-out infinite;
             z-index: -1;
         }
 
@@ -156,35 +185,35 @@
             box-shadow: 0 0 8px currentColor;
         }
 
-        /* 批量生成粒子样式 */
+        /* 批量生成粒子样式 - 使用webman主题色 */
         .time-particle.red {
-            background: radial-gradient(circle, #dc382d 0%, #ff6b6b 100%);
-            color: #dc382d;
+            background: radial-gradient(circle, #8b5cf6 0%, #a78bfa 100%);
+            color: #8b5cf6;
         }
         
         .time-particle.green {
-            background: radial-gradient(circle, #82b367 0%, #a8d5a8 100%);
-            color: #82b367;
+            background: radial-gradient(circle, #3b82f6 0%, #60a5fa 100%);
+            color: #3b82f6;
         }
         
         .time-particle.yellow {
-            background: radial-gradient(circle, #f7d060 0%, #ffd93d 100%);
-            color: #f7d060;
+            background: radial-gradient(circle, #06b6d4 0%, #67e8f9 100%);
+            color: #06b6d4;
         }
         
         .time-particle.blue {
-            background: radial-gradient(circle, #4a90e2 0%, #87ceeb 100%);
-            color: #4a90e2;
+            background: radial-gradient(circle, #8b5cf6 0%, #c084fc 100%);
+            color: #8b5cf6;
         }
         
         .time-particle.purple {
-            background: radial-gradient(circle, #9b59b6 0%, #c39bd3 100%);
-            color: #9b59b6;
+            background: radial-gradient(circle, #3b82f6 0%, #93c5fd 100%);
+            color: #3b82f6;
         }
         
         .time-particle.orange {
-            background: radial-gradient(circle, #e67e22 0%, #f39c12 100%);
-            color: #e67e22;
+            background: radial-gradient(circle, #06b6d4 0%, #22d3ee 100%);
+            color: #06b6d4;
         }
 
         @keyframes timeFlow {
@@ -210,6 +239,7 @@
             }
         }
 
+        
         @keyframes timeFlowSlow {
             0% {
                 transform: translateX(0) translateY(0) translateZ(0) scale(0);
@@ -309,13 +339,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(220, 56, 45, 0.03) 20%, 
-                rgba(130, 179, 103, 0.05) 50%, 
-                rgba(220, 56, 45, 0.03) 80%, 
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(220, 56, 45, 0.03) 20%,
+                rgba(130, 179, 103, 0.05) 50%,
+                rgba(220, 56, 45, 0.03) 80%,
                 transparent 100%);
-            animation: trailFlow 8s ease-in-out infinite;
+            animation: trailFlow 4s ease-in-out infinite;
             z-index: -1;
         }
 
@@ -411,11 +441,18 @@
             font-size: clamp(3.5rem, 8vw, 6rem);
             font-weight: 800;
             margin-bottom: clamp(2rem, 5vh, 4rem);
-            background: var(--redis-gradient);
+            background: linear-gradient(135deg, #fff 0%, #fff 25%, #a78bfa 50%, #60a5fa 75%, #fff 100%);
+            background-size: 400% 400%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: fadeInUp 0.8s ease-out;
-            text-shadow: 0 4px 20px rgba(220, 56, 45, 0.2);
+            background-clip: text;
+            animation: fadeInUp 0.8s ease-out, gradient-shift 8s ease infinite;
+            text-shadow: 0 0 80px rgba(139, 92, 246, 0.5);
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .subtitle-wrapper {
@@ -445,13 +482,13 @@
         .hero .subtitle {
             font-size: clamp(1.3rem, 3vw, 2rem);
             font-weight: 600;
-            color: var(--text-secondary);
+            color: rgba(255, 255, 255, 0.6);
             animation: fadeInUp 0.8s ease-out 0.2s both;
             position: relative;
             z-index: 2;
             margin: 0;
             line-height: 1.6;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .subtitle-wrapper::before {
@@ -482,18 +519,18 @@
             }
         }
 
-        .subtitle-wrapper::after {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-            border-radius: 12px;
-            animation: shimmer 3s ease-in-out infinite;
-            z-index: 3;
-        }
+        /*.subtitle-wrapper::after {*/
+        /*    content: '';*/
+        /*    position: absolute;*/
+        /*    top: -10px;*/
+        /*    left: -10px;*/
+        /*    right: -10px;*/
+        /*    bottom: -10px;*/
+        /*    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);*/
+        /*    border-radius: 12px;*/
+        /*    animation: shimmer 3s ease-in-out infinite;*/
+        /*    z-index: 3;*/
+        /*}*/
 
         @keyframes shimmer {
             0%, 100% {
@@ -556,47 +593,157 @@
         }
 
         .btn-primary {
-            background: var(--redis-gradient);
+            background: var(--gradient-primary);
             color: white;
-            box-shadow: 0 4px 15px rgba(220, 56, 45, 0.4);
+            box-shadow: var(--shadow-glow);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(220, 56, 45, 0.6);
+            box-shadow: 0 0 60px rgba(139, 92, 246, 0.5);
         }
 
         .btn-secondary {
-            background: var(--card-bg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
             color: var(--text-primary);
-            border: 1px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary-color);
+            background: var(--card-bg);
             transform: translateY(-2px);
         }
 
-        /* Install Section */
+        /* Install Section - 简化版 */
         .install {
-            padding: 3rem 0;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f3f4 100%);
-            border-top: 1px solid var(--soft-gray);
+            padding: 4rem 0;
+            background: var(--dark-bg);
+            border-top: 1px solid var(--glass-border);
         }
 
-        .install-content {
-            text-align: center;
-            max-width: 800px;
+        .install-simple {
+            max-width: 1200px;
             margin: 0 auto;
+            text-align: center;
         }
 
-        .install h2 {
+        .install-title {
             font-size: 2.5rem;
-            margin-bottom: 2rem;
-            background: var(--redis-gradient);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .install-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .install-requirements {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .install-requirements strong {
+            color: var(--text-primary);
+        }
+
+        .code-block.simple {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            position: relative;
+            text-align: left;
+        }
+
+        .code-block.simple #install-code {
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 1.2rem;
+            color: #f8fafc;
+            line-height: 1.6;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        /* 使用示例 - 简化版 */
+        .usage-simple {
+            text-align: left;
+        }
+
+        .usage-simple h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .code-examples-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .code-card.simple {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-card.simple h4 {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem 1.5rem;
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .code-card.simple pre {
+            margin: 0;
+            padding: 1.5rem;
+            background: #1a1a1a;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .code-card.simple code {
+            color: #f8fafc;
         }
 
         .code-block {
@@ -635,18 +782,309 @@
             box-shadow: 0 4px 12px rgba(220, 56, 45, 0.6);
         }
 
-        /* Quick Start */
+        /* Quick Start - 重新设计 */
         .quick-start {
-            padding: 3rem 0;
+            padding: 6rem 0;
+            background: var(--dark-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-start::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 70% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            animation: pulse 10s ease-in-out infinite;
+        }
+
+        .quickstart-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+            z-index: 1;
         }
 
         .section-title {
             text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
-            background: var(--redis-gradient);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .quickstart-desc {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        .workflow-container {
+            margin-bottom: 4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .workflow-step {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workflow-step.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+        }
+
+        .workflow-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .workflow-step.active::before {
+            transform: scaleX(1);
+        }
+
+        .step-indicator {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto;
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .step-connector {
+            position: absolute;
+            top: 30px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: var(--glass-border);
+            z-index: -1;
+        }
+
+        .workflow-step:last-child .step-connector {
+            display: none;
+        }
+
+        .step-info h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-info p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .code-examples {
+            position: relative;
+            z-index: 1;
+        }
+
+        .example-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .code-example-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+        }
+
+        .code-example-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.3);
+        }
+
+        .code-example-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .example-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .example-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .example-title h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .example-title p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .example-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .run-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--performance-green);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .run-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .code-example-content {
+            background: #1a1a1a;
+            padding: 2rem;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+        }
+
+        .quickstart-features {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 0.7rem 1.2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .feature-pill:hover {
+            border-color: var(--primary-color);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .pill-icon {
+            font-size: 1rem;
         }
 
         .code-grid {
@@ -681,25 +1119,38 @@
         }
 
         .code-card {
-            background: var(--card-bg);
-            border: 1px solid var(--soft-gray);
-            border-radius: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             overflow: hidden;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-card);
             display: flex;
             flex-direction: column;
             height: 100%;
+            position: relative;
+        }
+
+        .code-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient-primary);
+            opacity: 0.5;
         }
 
         .code-card:hover {
-            border-color: var(--redis-red);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(220, 56, 45, 0.2);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-card);
+            border-color: rgba(139, 92, 246, 0.3);
         }
 
         .code-card-header {
-            background: var(--redis-gradient);
+            background: var(--gradient-primary);
             color: white;
             padding: 1.8rem;
             font-weight: 700;
@@ -799,8 +1250,9 @@
         /* Performance Section */
         .performance {
             padding: 4rem 0;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border-radius: 30px;
+            margin: 2rem 0;
             position: relative;
             overflow: hidden;
         }
@@ -812,13 +1264,13 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(220, 56, 45, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 50%, rgba(130, 179, 103, 0.1) 0%, transparent 50%);
+            background: radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
             animation: pulse 8s ease-in-out infinite;
         }
 
         .performance .section-title {
-            color: white;
+            color: var(--text-primary);
             position: relative;
             z-index: 1;
         }
@@ -832,10 +1284,10 @@
         }
 
         .performance-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             padding: 2rem;
             text-align: center;
             transition: all 0.3s ease;
@@ -850,7 +1302,7 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, var(--redis-red), var(--performance-green));
+            background: var(--gradient-primary);
             transform: scaleX(0);
             transition: transform 0.3s ease;
         }
@@ -860,9 +1312,9 @@
         }
 
         .performance-card:hover {
-            transform: translateY(-4px);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 30px rgba(220, 56, 45, 0.3);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-card);
+            border-color: rgba(139, 92, 246, 0.3);
         }
 
         .performance-icon {
@@ -897,7 +1349,7 @@
         /* Frameworks Section */
         .frameworks {
             padding: 4rem 0;
-            background: linear-gradient(180deg, #e9ecef 0%, #f8fafc 100%);
+            background: var(--dark-bg);
         }
 
         .frameworks-grid {
@@ -907,9 +1359,10 @@
         }
 
         .framework-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             padding: 2.5rem;
             text-align: center;
             transition: all 0.3s ease;
@@ -973,8 +1426,8 @@
         /* Features */
         .features {
             padding: 3rem 0;
-            background: linear-gradient(180deg, #f1f3f4 0%, #e9ecef 100%);
-            border-top: 1px solid var(--border-color);
+            background: var(--dark-bg);
+            border-top: 1px solid var(--glass-border);
         }
 
         .features-grid {
@@ -984,13 +1437,14 @@
         }
 
         .feature-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             padding: 2.5rem;
             text-align: center;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
         }
@@ -1002,7 +1456,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: var(--redis-gradient);
+            background: var(--gradient-primary);
             transform: scaleX(0);
             transition: transform 0.3s ease;
         }
@@ -1012,15 +1466,20 @@
         }
 
         .feature-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--redis-red);
-            box-shadow: 0 10px 30px rgba(220, 56, 45, 0.3);
+            transform: translateY(-6px);
+            border-color: var(--primary-color);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.3);
         }
 
         .feature-icon {
             font-size: 3rem;
             margin-bottom: 1.5rem;
             display: block;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
         }
 
         .feature-title {
@@ -1038,9 +1497,11 @@
         /* Footer */
         .footer {
             padding: 2rem 0 1rem;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            border-top: 1px solid var(--redis-red);
-            color: #ffffff;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.95) 100%);
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .footer-content {
@@ -1052,7 +1513,7 @@
 
         .footer-section h4 {
             margin-bottom: 1rem;
-            color: #ffffff;
+            color: var(--text-primary);
         }
 
         .footer-section ul {
@@ -1064,20 +1525,21 @@
         }
 
         .footer-section a {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .footer-section a:hover {
-            color: #ffffff;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
         }
 
         .footer-bottom {
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: 1px solid var(--glass-border);
             padding-top: 1rem;
             text-align: center;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
         }
 
         /* Responsive */
@@ -1085,6 +1547,21 @@
             .code-grid {
                 grid-template-columns: 1fr;
                 gap: 2rem;
+            }
+            
+            .install-steps {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .workflow-steps {
+                flex-direction: column;
+                align-items: center;
+                gap: 2rem;
+            }
+            
+            .step-connector {
+                display: none;
             }
         }
         
@@ -1127,16 +1604,16 @@
             .nav-links {
                 display: none;
             }
-            
+
             .container {
                 padding: 0 1rem;
             }
-            
+
             .code-card-content {
                 padding: 1.5rem;
                 font-size: 0.9rem;
             }
-            
+
             .typing-code {
                 font-size: 0.9rem;
                 line-height: 1.4;
@@ -1159,6 +1636,32 @@
             .features-grid {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
+            }
+
+            .install {
+                padding: 3rem 0;
+            }
+
+            .install-title {
+                font-size: 2rem;
+            }
+
+            .code-block.simple {
+                padding: 1.5rem;
+            }
+
+            .code-card.simple pre {
+                padding: 1rem;
+                font-size: 0.8rem;
+            }
+
+            .example-tabs {
+                gap: 0.3rem;
+            }
+
+            .tab-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
             }
         }
 
@@ -1187,7 +1690,6 @@
                 <div class="logo">🚀 Redis Stream Queue</div>
                 <ul class="nav-links">
                     <li><a href="#quick-install">快速安装</a></li>
-                    <li><a href="#quick-start">快速开始</a></li>
                     <li><a href="#features">核心特性</a></li>
                     <li><a href="#performance">性能基准</a></li>
                     <li><a href="#frameworks">框架集成</a></li>
@@ -1209,7 +1711,7 @@
             <div class="hero-content">
                 <h1>🚀 Redis Stream Queue</h1>
                 <div class="subtitle-wrapper">
-                    <p class="subtitle">基于 Redis Streams + ZSET 的高性能轻量级 PHP 队列</p>
+                    <p class="subtitle">基于 Redis Stream 高性能轻量级消息队列</p>
                 </div>
                 <div class="hero-buttons">
                     <a href="#quick-install" class="btn btn-primary">快速开始</a>
@@ -1222,100 +1724,62 @@
     <!-- Quick Install Section -->
     <section id="quick-install" class="install">
         <div class="container">
-            <div class="install-content">
-                <h2>快速安装</h2>
-                <div class="code-block">
+            <div class="install-simple">
+                <h2 class="section-title">快速使用</h2>
+                <div class="code-block simple">
                     <button class="copy-btn" onclick="copyCode()">复制</button>
-                    <div id="install-code" class="typing-code-install"></div>
+                    <div id="install-code">composer require tinywan/redis-stream</div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Quick Start Section -->
-    <section id="quick-start" class="quick-start">
-        <div class="container">
-            <h2 class="section-title">快速开始</h2>
-            <div class="code-grid">
-                <div class="code-card">
-                    <div class="code-card-header">生产者示例</div>
-                    <div class="code-card-content"><div class="typing-code"><span class="php-tag">&lt;?php</span>
+                <!-- 独立的生产者和消费者示例 -->
+                <div class="usage-simple">
+                    <div class="code-examples-grid">
+                        <!-- 生产者示例 -->
+                        <div class="code-card simple">
+                            <h4>📤 生产者示例</h4>
+                            <pre><code><span class="php-tag">&lt;?php</span>
 
 <span class="php-keyword">use</span> <span class="php-class">Tinywan\RedisStream\RedisStreamQueue</span><span class="php-operator">;</span>
-<span class="php-keyword">use</span> <span class="php-class">Tinywan\RedisStream\MonologFactory</span><span class="php-operator">;</span>
-
-<span class="php-comment">// 基础配置</span>
-<span class="php-variable">$redisConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span><span class="php-string">'host'</span> <span class="php-operator">=></span> <span class="php-string">'127.0.0.1'</span><span class="php-operator">,</span> <span class="php-string">'port'</span> <span class="php-operator">=></span> <span class="php-number">6379</span><span class="php-bracket">]</span><span class="php-operator">;</span>
-<span class="php-variable">$queueConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span>
-    <span class="php-string">'stream_name'</span> <span class="php-operator">=></span> <span class="php-string">'my_queue'</span><span class="php-operator">,</span>
-    <span class="php-string">'consumer_group'</span> <span class="php-operator">=></span> <span class="php-string">'my_group'</span><span class="php-bracket">]</span><span class="php-operator">;</span>
-
-<span class="php-comment">// 创建日志记录器</span>
-<span class="php-variable">$logger</span> <span class="php-operator">=</span> <span class="php-class">MonologFactory</span><span class="php-operator">::</span><span class="php-method">createLogger</span><span class="php-bracket">(</span><span class="php-string">'redis-stream-app'</span><span class="php-bracket">)</span><span class="php-operator">;</span>
 
 <span class="php-comment">// 创建队列实例</span>
 <span class="php-variable">$queue</span> <span class="php-operator">=</span> <span class="php-class">RedisStreamQueue</span><span class="php-operator">::</span><span class="php-method">getInstance</span><span class="php-bracket">(</span>
-    <span class="php-variable">$redisConfig</span><span class="php-operator">,</span> <span class="php-variable">$queueConfig</span><span class="php-operator">,</span> 
-    <span class="php-variable">$logger</span>
+    <span class="php-bracket">[</span><span class="php-string">'host'</span> <span class="php-operator">=></span> <span class="php-string">'127.0.0.1'</span><span class="php-operator">,</span> <span class="php-string">'port'</span> <span class="php-operator">=></span> <span class="php-number">6379</span><span class="php-bracket">]</span><span class="php-operator">,</span>
+    <span class="php-bracket">[</span><span class="php-string">'stream_name'</span> <span class="php-operator">=></span> <span class="php-string">'tasks'</span><span class="php-bracket">]</span>
 <span class="php-bracket">)</span><span class="php-operator">;</span>
 
-<span class="php-comment">// 批量发送消息</span>
-<span class="php-variable">$messages</span> <span class="php-operator">=</span> <span class="php-bracket">[</span>
-    <span class="php-bracket">[</span><span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'user_registered'</span><span class="php-operator">,</span> <span class="php-string">'user_id'</span> <span class="php-operator">=></span> <span class="php-number">123</span><span class="php-bracket">]</span><span class="php-operator">,</span>
-    <span class="php-bracket">[</span><span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'order_created'</span><span class="php-operator">,</span> <span class="php-string">'order_id'</span> <span class="php-operator">=></span> <span class="php-number">456</span><span class="php-bracket">]</span><span class="php-operator">,</span>
-    <span class="php-bracket">[</span><span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'payment_success'</span><span class="php-operator">,</span> <span class="php-string">'amount'</span> <span class="php-operator">=></span> <span class="php-number">99.99</span><span class="php-bracket">]</span>
-<span class="php-bracket">]</span><span class="php-operator">;</span>
+<span class="php-comment">// 发送消息</span>
+<span class="php-variable">$messageId</span> <span class="php-operator">=</span> <span class="php-variable">$queue</span><span class="php-operator">-></span><span class="php-method">send</span><span class="php-bracket">(</span>
+    <span class="php-bracket">[</span>
+        <span class="php-string">'type'</span> <span class="php-operator">=></span> <span class="php-string">'user_registered'</span><span class="php-operator">,</span>
+        <span class="php-string">'user_id'</span> <span class="php-operator">=></span> <span class="php-number">12345</span><span class="php-operator">,</span>
+        <span class="php-string">'email'</span> <span class="php-operator">=></span> <span class="php-string">'user@example.com'</span><span class="php-bracket">]</span>
+<span class="php-bracket">)</span><span class="php-operator">;</span>
 
-<span class="php-keyword">foreach</span> <span class="php-bracket">(</span><span class="php-variable">$messages</span> <span class="php-keyword">as</span> <span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
-    <span class="php-variable">$messageId</span> <span class="php-operator">=</span> <span class="php-variable">$queue</span><span class="php-operator">-></span><span class="php-method">send</span><span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span><span class="php-operator">;</span>
-    <span class="php-echo">echo</span> <span class="php-string">"Sent: "</span> <span class="php-operator">.</span> <span class="php-variable">$messageId</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
-<span class="php-bracket">}</span></div></div>
-                </div>
-                <div class="code-card">
-                    <div class="code-card-header">消费者示例</div>
-                    <div class="code-card-content"><div class="typing-code"><span class="php-tag">&lt;?php</span>
+<span class="php-echo">echo</span> <span class="php-string">"消息已发送: "</span> <span class="php-operator">.</span> <span class="php-variable">$messageId</span><span class="php-operator">;</span></code></pre>
+                        </div>
+
+                        <!-- 消费者示例 -->
+                        <div class="code-card simple">
+                            <h4>📥 消费者示例</h4>
+                            <pre><code><span class="php-tag">&lt;?php</span>
 
 <span class="php-keyword">use</span> <span class="php-class">Tinywan\RedisStream\RedisStreamQueue</span><span class="php-operator">;</span>
-<span class="php-keyword">use</span> <span class="php-class">Tinywan\RedisStream\MonologFactory</span><span class="php-operator">;</span>
-
-<span class="php-comment">// 基础配置</span>
-<span class="php-variable">$redisConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span><span class="php-string">'host'</span> <span class="php-operator">=></span> <span class="php-string">'127.0.0.1'</span><span class="php-operator">,</span> <span class="php-string">'port'</span> <span class="php-operator">=></span> <span class="php-number">6379</span><span class="php-bracket">]</span><span class="php-operator">;</span>
-<span class="php-variable">$queueConfig</span> <span class="php-operator">=</span> <span class="php-bracket">[</span>
-    <span class="php-string">'stream_name'</span> <span class="php-operator">=></span> <span class="php-string">'my_queue'</span><span class="php-operator">,</span>
-    <span class="php-string">'consumer_group'</span> <span class="php-operator">=></span> <span class="php-string">'my_group'</span><span class="php-bracket">]</span><span class="php-operator">;</span>
-
-<span class="php-comment">// 创建日志记录器</span>
-<span class="php-variable">$logger</span> <span class="php-operator">=</span> <span class="php-class">MonologFactory</span><span class="php-operator">::</span><span class="php-method">createLogger</span><span class="php-bracket">(</span><span class="php-string">'redis-stream-app'</span><span class="php-bracket">)</span><span class="php-operator">;</span>
 
 <span class="php-comment">// 创建队列实例</span>
 <span class="php-variable">$queue</span> <span class="php-operator">=</span> <span class="php-class">RedisStreamQueue</span><span class="php-operator">::</span><span class="php-method">getInstance</span><span class="php-bracket">(</span>
-    <span class="php-variable">$redisConfig</span><span class="php-operator">,</span> <span class="php-variable">$queueConfig</span><span class="php-operator">,</span> 
-    <span class="php-variable">$logger</span>
+    <span class="php-bracket">[</span><span class="php-string">'host'</span> <span class="php-operator">=></span> <span class="php-string">'127.0.0.1'</span><span class="php-operator">,</span> <span class="php-string">'port'</span> <span class="php-operator">=></span> <span class="php-number">6379</span><span class="php-bracket">]</span><span class="php-operator">,</span>
+    <span class="php-bracket">[</span><span class="php-string">'stream_name'</span> <span class="php-operator">=></span> <span class="php-string">'tasks'</span><span class="php-bracket">]</span>
 <span class="php-bracket">)</span><span class="php-operator">;</span>
 
-<span class="php-comment">// 消费消息 (回调方式)</span>
+<span class="php-comment">// 消费消息</span>
 <span class="php-variable">$message</span> <span class="php-operator">=</span> <span class="php-variable">$queue</span><span class="php-operator">-></span><span class="php-method">consume</span><span class="php-bracket">(</span><span class="php-keyword">function</span><span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
-    <span class="php-echo">echo</span> <span class="php-string">"Processing: "</span> <span class="php-operator">.</span> <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'type'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\\n"</span><span class="php-operator">;</span>
-    
-    <span class="php-comment">// 业务逻辑处理</span>
-    <span class="php-keyword">switch</span> <span class="php-bracket">(</span><span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'type'</span><span class="php-bracket">]</span><span class="php-bracket">)</span> <span class="php-bracket">{</span>
-        <span class="php-keyword">case</span> <span class="php-string">'user_registered'</span><span class="php-operator">:</span>
-            <span class="php-comment">// 处理用户注册逻辑</span>
-            <span class="php-keyword">break</span><span class="php-operator">;</span>
-        <span class="php-keyword">case</span> <span class="php-string">'order_created'</span><span class="php-operator">:</span>
-            <span class="php-comment">// 处理订单创建逻辑</span>
-            <span class="php-keyword">break</span><span class="php-operator">;</span>
-    <span class="php-bracket">}</span>
-    
-    <span class="php-keyword">return</span> <span class="php-keyword">true</span><span class="php-operator">;</span> <span class="php-comment">// 自动确认</span>
-<span class="php-bracket">}</span><span class="php-bracket">)</span><span class="php-operator">;</span>
+    <span class="php-echo">echo</span> <span class="php-string">"处理消息: "</span> <span class="php-operator">.</span> <span class="php-variable">$message</span><span class="php-bracket">[</span><span class="php-string">'type'</span><span class="php-bracket">]</span> <span class="php-operator">.</span> <span class="php-string">"\n"</span><span class="php-operator">;</span>
 
-<span class="php-comment">// 或者直接消费方式</span>
-<span class="php-comment">// $message = $queue->consume();</span>
-<span class="php-comment">// if ($message) {</span>
-<span class="php-comment">//     // 处理消息</span>
-<span class="php-comment">//     $queue->ack($message['id']);</span>
-<span class="php-comment">// }</span></div></div>
+    <span class="php-comment">// 处理业务逻辑</span>
+    <span class="php-keyword">return</span> <span class="php-keyword">true</span><span class="php-operator">;</span> <span class="php-comment">// 确认消息</span>
+<span class="php-bracket">}</span><span class="php-bracket">)</span><span class="php-operator">;</span></code></pre>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1361,7 +1825,7 @@
     </section>
 
     <!-- Performance Section -->
-    <section class="performance">
+    <section id="performance" class="performance">
         <div class="container">
             <h2 class="section-title">性能基准</h2>
             <div class="performance-grid">
@@ -1394,7 +1858,7 @@
     </section>
 
     <!-- Framework Integration Section -->
-    <section class="frameworks">
+    <section id="frameworks" class="frameworks">
         <div class="container">
             <h2 class="section-title">框架集成</h2>
             <div class="frameworks-grid">
@@ -1478,10 +1942,10 @@
                 const originalText = button.textContent;
                 button.textContent = '已复制!';
                 button.style.background = 'var(--performance-green)';
-                
+
                 setTimeout(() => {
                     button.textContent = originalText;
-                    button.style.background = 'var(--redis-red)';
+                    button.style.background = 'var(--primary-color)';
                 }, 2000);
             });
         }
@@ -1500,15 +1964,17 @@
             });
         });
 
-        // 导航栏滚动效果
+        // 导航栏滚动效果 - 保持透明玻璃风格
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('.nav');
             const navLinks = nav.querySelectorAll('.nav-links a');
             const logo = nav.querySelector('.logo');
-            
+
             if (window.scrollY > 100) {
-                nav.style.background = 'linear-gradient(135deg, rgba(220, 56, 45, 0.95) 0%, rgba(169, 38, 30, 0.9) 100%)';
-                nav.style.boxShadow = '0 8px 30px rgba(220, 56, 45, 0.3)';
+                nav.style.background = 'var(--glass-bg)';
+                nav.style.backdropFilter = 'blur(20px)';
+                nav.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+                nav.style.border = '1px solid var(--glass-border)';
                 // 滚动时导航链接和logo使用白色
                 navLinks.forEach(link => {
                     link.style.color = '#ffffff';
@@ -1519,37 +1985,24 @@
                 logo.style.webkitBackgroundClip = 'none';
                 logo.style.webkitTextFillColor = '#ffffff';
             } else {
-                nav.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 247, 250, 0.95) 100%)';
-                nav.style.boxShadow = '0 2px 15px rgba(220, 56, 45, 0.1)';
-                // 非滚动时恢复原色
+                nav.style.background = 'var(--glass-bg)';
+                nav.style.backdropFilter = 'blur(20px)';
+                nav.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.1)';
+                nav.style.border = '1px solid var(--glass-border)';
+                // 非滚动时保持透明玻璃风格
                 navLinks.forEach(link => {
-                    link.style.color = 'var(--text-secondary)';
+                    link.style.color = '#ffffff';
                 });
-                logo.style.color = '';
-                logo.style.textShadow = '';
-                logo.style.background = '';
-                logo.style.webkitBackgroundClip = 'text';
-                logo.style.webkitTextFillColor = 'transparent';
+                logo.style.color = '#ffffff';
+                logo.style.textShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
+                logo.style.background = 'none';
+                logo.style.webkitBackgroundClip = 'none';
+                logo.style.webkitTextFillColor = '#ffffff';
             }
         });
 
         // 页面加载完成后启动打字机效果
         document.addEventListener('DOMContentLoaded', function() {
-            // 快速安装代码打字效果
-            const installCode = document.getElementById('install-code');
-            const installText = 'composer require tinywan/redis-stream';
-            let installIndex = 0;
-            
-            function typeInstallCode() {
-                if (installIndex < installText.length) {
-                    installCode.textContent += installText.charAt(installIndex);
-                    installIndex++;
-                    setTimeout(typeInstallCode, 100);
-                }
-            }
-            
-            // 延迟1秒后开始打字效果
-            setTimeout(typeInstallCode, 1000);
 
             // 动态粒子生成系统
             createParticleSystem();
@@ -1559,9 +2012,10 @@
 
             // 添加性能数字动画
             animatePerformanceNumbers();
-        });
 
-        // 粒子系统生成函数
+          });
+
+              // 粒子系统生成函数
         function createParticleSystem() {
             const container = document.getElementById('particles-container');
             const colors = ['red', 'green', 'yellow', 'blue', 'purple', 'orange'];
@@ -1591,7 +2045,7 @@
             particle.style.top = `${startY}px`;
             
             // 随机动画延迟
-            const delay = Math.random() * 20;
+            const delay = Math.random() * 8;
             particle.style.animationDelay = `${delay}s`;
             
             // 随机动画持续时间
@@ -1647,13 +2101,13 @@
         // 性能数字动画
         function animatePerformanceNumbers() {
             const performanceNumbers = document.querySelectorAll('.performance-number');
-            
+
             const animateNumber = (element) => {
                 const finalText = element.textContent;
                 const hasPlus = finalText.includes('+');
                 const hasMS = finalText.includes('ms');
                 const hasMB = finalText.includes('MB');
-                
+
                 let finalNumber = parseFloat(finalText.replace(/[^0-9.]/g, ''));
                 let currentNumber = 0;
                 const increment = finalNumber / 50;
@@ -1663,12 +2117,12 @@
                         currentNumber = finalNumber;
                         clearInterval(timer);
                     }
-                    
+
                     let displayText = Math.floor(currentNumber).toString();
                     if (hasPlus) displayText += '+';
                     if (hasMS) displayText += 'ms';
                     if (hasMB) displayText += 'MB';
-                    
+
                     element.textContent = displayText;
                 }, 30);
             };

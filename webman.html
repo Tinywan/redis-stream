@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>webman - 超高性能PHP框架</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <!-- Lenis Smooth Scroll -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        * {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        html {
+            scroll-behavior: initial;
+        }
+
+        body {
+            background: #000;
+            overflow-x: hidden;
+            color: white;
+        }
+
+        /* Hero Styles - 完全复制index.html样式 */
+        .hero-container {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.15), transparent 40%),
+                radial-gradient(ellipse at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+                radial-gradient(ellipse at bottom center, rgba(236, 72, 153, 0.1), transparent 50%),
+                radial-gradient(circle at center, rgba(139, 92, 246, 0.03), transparent 70%),
+                linear-gradient(180deg, #000 0%, #0a0014 50%, #000 100%);
+        }
+
+        .hero-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-move 20s linear infinite;
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            animation: orb-float 20s infinite ease-in-out;
+        }
+
+        .gradient-orb-1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            top: -200px;
+            left: -200px;
+        }
+
+        .gradient-orb-2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: -10s;
+        }
+
+        .gradient-orb-3 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -5s;
+        }
+
+        @keyframes orb-float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            33% {
+                transform: translate(30px, -30px) scale(1.1);
+            }
+            66% {
+                transform: translate(-30px, 30px) scale(0.9);
+            }
+        }
+
+        .hero-title {
+            font-size: clamp(4rem, 14vw, 11rem);
+            font-weight: 850;
+            line-height: 1.1;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, #fff 0%, #fff 25%, #a78bfa 50%, #60a5fa 75%, #fff 100%);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 8s ease infinite;
+            text-shadow: 0 0 80px rgba(139, 92, 246, 0.5);
+        }
+
+        .hero-title span {
+            display: block;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+            font-weight: 200;
+            letter-spacing: 0.02em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .floating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 100px;
+            backdrop-filter: blur(20px);
+            animation: float-vertical 3s ease-in-out infinite;
+            box-shadow:
+                0 0 20px rgba(16, 185, 129, 0.2),
+                inset 0 0 20px rgba(16, 185, 129, 0.05);
+        }
+
+        @keyframes float-vertical {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .glow-line {
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(139, 92, 246, 0.5),
+                rgba(59, 130, 246, 0.8),
+                rgba(139, 92, 246, 0.5),
+                transparent
+            );
+            animation: glow-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .aurora-button {
+            position: relative;
+            padding: 1.25rem 3rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 100px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .aurora-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: left 0.5s;
+        }
+
+        .aurora-button:hover::before {
+            left: 100%;
+        }
+
+        .aurora-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120%;
+            height: 120%;
+            background: inherit;
+            border-radius: inherit;
+            transform: translate(-50%, -50%);
+            filter: blur(20px);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+
+        .aurora-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.4);
+        }
+
+        .aurora-button:hover::after {
+            opacity: 0.5;
+        }
+
+        .glass-border {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 100px;
+            padding: 0.25rem;
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.05),
+                rgba(255, 255, 255, 0.02)
+            );
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(139, 92, 246, 0.1),
+                transparent
+            );
+            transition: left 0.5s;
+        }
+
+        .glass-card:hover::before {
+            left: 100%;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: linear-gradient(135deg,
+                rgba(139, 92, 246, 0.1),
+                rgba(255, 255, 255, 0.05)
+            );
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow:
+                0 20px 40px rgba(139, 92, 246, 0.2),
+                inset 0 0 20px rgba(139, 92, 246, 0.05);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .glass-card:hover .feature-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .code-block {
+            background: linear-gradient(135deg, rgba(10, 10, 25, 0.95), rgba(20, 10, 30, 0.95));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 24px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            font-family: var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace);
+            box-shadow:
+                0 0 40px rgba(139, 92, 246, 0.1),
+                inset 0 0 40px rgba(139, 92, 246, 0.02);
+            min-height: 400px;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+            animation: code-glow 10s ease-in-out infinite;
+        }
+
+        @keyframes code-glow {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .code-block pre {
+            position: relative;
+            z-index: 1;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            letter-spacing: 0.3px;
+            font-weight: 400;
+            font-family: var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace);
+            min-height: 320px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .section-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .cta-gradient {
+            background:
+                radial-gradient(ellipse at center top, rgba(139, 92, 246, 0.3), transparent 50%),
+                radial-gradient(ellipse at center bottom, rgba(59, 130, 246, 0.2), transparent 50%),
+                linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, transparent 100%);
+        }
+
+        .tool-hero-card {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+            animation: toolCardReveal 0.6s forwards;
+        }
+
+        .tool-hero-card:nth-child(1) { animation-delay: 0.1s; }
+        .tool-hero-card:nth-child(2) { animation-delay: 0.2s; }
+        .tool-hero-card:nth-child(3) { animation-delay: 0.3s; }
+        .tool-hero-card:nth-child(4) { animation-delay: 0.4s; }
+        .tool-hero-card:nth-child(5) { animation-delay: 0.5s; }
+        .tool-hero-card:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes toolCardReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .start-option {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .start-option:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .code-snippet {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-family: var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace);
+            transition: all 0.3s;
+        }
+
+        .start-option:hover .code-snippet {
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .code-snippet code {
+            color: rgba(199, 146, 234, 0.9);
+        }
+
+        /* Performance comparison styles */
+        .performance-chart {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            height: 300px;
+            padding: 2rem;
+            gap: 1rem;
+        }
+
+        .performance-bar {
+            flex: 1;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .performance-bar:hover {
+            transform: scaleY(1.05);
+            filter: brightness(1.2);
+        }
+
+        .performance-bar-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .performance-bar-name {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            white-space: nowrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+        }
+
+    
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: clamp(2.5rem, 12vw, 6rem) !important;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem !important;
+            }
+            
+            .section-title {
+                font-size: 2rem !important;
+            }
+            
+            .performance-chart {
+                height: 250px;
+                padding: 1rem;
+                gap: 0.5rem;
+            }
+            
+            .performance-bar {
+                min-height: 40px;
+            }
+            
+            .performance-bar-label {
+                font-size: 0.8rem;
+                top: -25px;
+            }
+            
+            .performance-bar-name {
+                font-size: 0.7rem;
+                bottom: -20px;
+            }
+            
+            .code-block {
+                padding: 1rem !important;
+                font-size: 0.75rem !important;
+            }
+            
+            .code-block pre {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+            }
+            
+            .glass-card {
+                padding: 1.5rem !important;
+            }
+            
+            .feature-card {
+                padding: 1.5rem !important;
+            }
+            
+            .aurora-button {
+                padding: 1rem 2rem !important;
+                font-size: 1rem !important;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero-title {
+                font-size: clamp(2rem, 15vw, 5rem) !important;
+            }
+            
+            .performance-chart {
+                height: 200px;
+                padding: 0.5rem;
+                gap: 0.25rem;
+            }
+            
+            .performance-bar {
+                min-height: 35px;
+            }
+            
+            .performance-bar-label {
+                font-size: 0.7rem;
+                top: -20px;
+            }
+            
+            .performance-bar-name {
+                font-size: 0.6rem;
+                bottom: -18px;
+            }
+            
+            .glass-card {
+                padding: 1rem !important;
+            }
+            
+            .feature-card {
+                padding: 1rem !important;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Small mobile adjustments */
+        @media (max-width: 480px) {
+            .performance-chart {
+                height: 180px;
+                padding: 0.25rem;
+            }
+            
+            .performance-bar {
+                min-height: 30px;
+            }
+            
+            .performance-bar-label {
+                font-size: 0.6rem;
+                top: -18px;
+            }
+            
+            .performance-bar-name {
+                font-size: 0.5rem;
+                bottom: -15px;
+            }
+            
+            .section-title {
+                font-size: 1.5rem !important;
+            }
+            
+            .grid {
+                gap: 0.75rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section - 完全遵循index.html结构 -->
+    <section class="hero-container flex items-center justify-center">
+        <div class="hero-grid"></div>
+
+        <!-- Animated gradient orbs -->
+        <div class="gradient-orb gradient-orb-1"></div>
+        <div class="gradient-orb gradient-orb-2"></div>
+        <div class="gradient-orb gradient-orb-3"></div>
+
+        <!-- Content -->
+        <div class="relative z-10 text-center px-6 max-w-7xl mx-auto">
+            <div class="hero-content">
+                <!-- Main title -->
+                <h1 class="hero-title mt-20 mb-10">
+                    <span class="block mb-4">webman</span>
+                    <span class="block">超高性能</span>
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="hero-subtitle mb-4">
+                    基于Workerman的高性能PHP框架
+                </p>
+                <p class="hero-subtitle mb-12">
+                    <span class="shimmer-text font-semibold">常驻内存，永不宕机</span>
+                </p>
+
+                <!-- Performance Stats -->
+                <div class="stats-grid max-w-4xl mx-auto mb-16">
+                    <div class="stat-card">
+                        <div class="stat-number">10x</div>
+                        <div class="stat-label">性能提升</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100万+</div>
+                        <div class="stat-label">QPS吞吐</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">兼容传统框架</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">0.08ms</div>
+                        <div class="stat-label">响应时间</div>
+                    </div>
+                </div>
+
+                <!-- CTA -->
+                <div class="flex justify-center mb-16">
+                    <button class="aurora-button group">
+                        <span class="flex items-center gap-2">
+                            开始构建
+                            <svg class="w-5 h-5 transition-transform group-hover:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Scroll indicator -->
+                <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2">
+                    <div class="flex flex-col items-center gap-2 text-white/40">
+                        <span class="text-xs uppercase tracking-widest">Scroll</span>
+                        <div class="w-px h-12 bg-gradient-to-b from-white/40 to-transparent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Webman Section -->
+    <section class="why-section relative py-32 px-6" style="background: #000; min-height: 100vh;">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="section-title text-white mb-6">
+                    为什么选择 <span class="gradient-text">webman</span>
+                </h2>
+                <p class="text-xl text-white/40 max-w-2xl mx-auto">
+                    颠覆传统PHP框架性能极限，开启高并发新时代
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="space-y-6">
+                    <div class="why-card glass-card p-8">
+                        <h3 class="text-2xl font-bold mb-4 text-white">常驻内存机制</h3>
+                        <p class="text-white/60 leading-relaxed">
+                            传统框架每次请求都要重新初始化，Webman常驻内存避免重复加载，性能提升数十倍。内存占用极低，响应时间毫秒级。
+                        </p>
+                    </div>
+
+                    <div class="why-card glass-card p-8">
+                        <h3 class="text-2xl font-bold mb-4 text-white">事件驱动架构</h3>
+                        <p class="text-white/60 leading-relaxed">
+                            基于Workerman十年技术沉淀，异步非阻塞I/O，单机轻松处理百万级并发。性能媲美Go、Java等编译型语言。
+                        </p>
+                    </div>
+
+                    <div class="why-card glass-card p-8">
+                        <h3 class="text-2xl font-bold mb-4 text-white">100%兼容生态</h3>
+                        <p class="text-white/60 leading-relaxed">
+                            完全兼容ThinkPHP、Laravel等传统框架开发习惯，零学习成本，平滑迁移。支持PSR标准，生态丰富。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full opacity-80 hover:opacity-100 transition-opacity"></div>
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full opacity-80 hover:opacity-100 transition-opacity"></div>
+                            <div class="w-3 h-3 bg-green-500 rounded-full opacity-80 hover:opacity-100 transition-opacity"></div>
+                        </div>
+                        <div class="text-white/60 text-sm">app/controller/User.php</div>
+                    </div>
+                    <pre class="text-sm"><code><span style="color: #c792ea;"><?php</span>
+<span style="color: #ff9800;">namespace</span> <span style="color: #82aaff;">app\controller</span>;
+
+<span style="color: #ff9800;">use</span> <span style="color: #82aaff;">support\Request</span>;
+<span style="color: #ff9800;">use</span> <span style="color: #82aaff;">support\Response</span>;
+
+<span style="color: #ff9800;">class</span> <span style="color: #82aaff;">UserController</span>
+{
+    <span style="color: #ff9800;">public function</span> <span style="color: #86e1fc;">index</span>(<span style="color: #82aaff;">Request</span> <span style="color: #f78c6c;">$request</span>): <span style="color: #82aaff;">Response</span>
+    {
+        <span style="color: #7982a9;">// 常驻内存，无需重复初始化</span>
+        <span style="color: #ff9800;">return</span> <span style="color: #82aaff;">json</span>([
+            <span style="color: "#c3e88d;">'code'</span> => <span style="color: #f78c6c;">200</span>,
+            <span style="color: "#c3e88d;">'msg'</span> => <span style="color: "#c3e88d;">'Hello Webman!'</span>,
+            <span style="color: "#c3e88d;">'data'</span> => <span style="color: #82aaff;">config</span>(<span style="color: "#c3e88d;">'app'</span>)
+        ]);
+    }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Comparison Section -->
+    <section class="features-section relative py-32 px-6" style="background: #000; min-height: 100vh;">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="section-title text-white mb-6">
+                    性能<span class="gradient-text">对比</span>
+                </h2>
+                <p class="text-xl text-white/40 max-w-3xl mx-auto">
+                    与主流框架性能对比，数据说话
+                </p>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="glass-card p-8 mb-12">
+                <h3 class="text-2xl font-bold mb-8 text-center text-white">QPS性能测试 (Hello World)</h3>
+                <div class="text-center mb-8">
+                    <h4 class="text-lg text-white/80 font-medium">性能对比数据展示</h4>
+                    <p class="text-white/60 mt-2">基于相同测试环境下的性能基准测试结果</p>
+                </div>
+                <div class="performance-chart">
+                    <div class="performance-bar" style="height: 100%;">
+                        <div class="performance-bar-label" style="color: #10b981;">120万</div>
+                        <div class="performance-bar-name">Webman</div>
+                    </div>
+                    <div class="performance-bar" style="height: 67%; background: linear-gradient(to top, #3b82f6, #1d4ed8);">
+                        <div class="performance-bar-label" style="color: #3b82f6;">80万</div>
+                        <div class="performance-bar-name">Go Gin</div>
+                    </div>
+                    <div class="performance-bar" style="height: 25%; background: linear-gradient(to top, #a855f7, #9333ea);">
+                        <div class="performance-bar-label" style="color: #a855f7;">30万</div>
+                        <div class="performance-bar-name">Laravel Octane</div>
+                    </div>
+                    <div class="performance-bar" style="height: 10%; background: linear-gradient(to top, #f59e0b, #d97706);">
+                        <div class="performance-bar-label" style="color: #f59e0b;">12万</div>
+                        <div class="performance-bar-name">Laravel</div>
+                    </div>
+                    <div class="performance-bar" style="height: 8%; background: linear-gradient(to top, #ef4444, #dc2626);">
+                        <div class="performance-bar-label" style="color: #ef4444;">10万</div>
+                        <div class="performance-bar-name">ThinkPHP</div>
+                    </div>
+                </div>
+                <div class="mt-8 text-center text-white/60">
+                    <p>* 测试环境：8核16G内存，PHP 8.1</p>
+                    <p>* 数据来源：官方基准测试</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-card glass-card p-8 group">
+                    <div class="feature-icon">
+                        <i data-lucide="zap" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">超高性能</h3>
+                    <p class="text-white/60 leading-relaxed mb-4">
+                        常驻内存机制，避免重复加载。单机轻松处理百万级并发，性能媲美Go、Java等编译型语言。
+                    </p>
+                    <code class="text-sm text-purple-400 font-mono">100万+ QPS • 0.08ms响应</code>
+                </div>
+
+                <div class="feature-card glass-card p-8 group">
+                    <div class="feature-icon">
+                        <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">内存优化</h3>
+                    <p class="text-white/60 leading-relaxed mb-4">
+                        内存占用极低，相比传统框架节省80%内存资源。支持数万长连接，适合高并发场景。
+                    </p>
+                    <code class="text-sm text-cyan-400 font-mono">内存节省80% • 万级连接</code>
+                </div>
+
+                <div class="feature-card glass-card p-8 group">
+                    <div class="feature-icon">
+                        <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">零学习成本</h3>
+                    <p class="text-white/60 leading-relaxed mb-4">
+                        完全兼容ThinkPHP、Laravel开发习惯，现有代码无需修改即可获得性能提升。
+                    </p>
+                    <code class="text-sm text-emerald-400 font-mono">100%兼容 • 零成本迁移</code>
+                </div>
+
+                <div class="feature-card glass-card p-8 group">
+                    <div class="feature-icon">
+                        <i data-lucide="shield" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">稳定可靠</h3>
+                    <p class="text-white/60 leading-relaxed mb-4">
+                        基于Workerman十年技术沉淀，经过亿级产品验证，企业级稳定性保障。
+                    </p>
+                    <code class="text-sm text-pink-400 font-mono">十年沉淀 • 亿级验证</code>
+                </div>
+
+                <div class="feature-card glass-card p-8 group">
+                    <div class="feature-icon">
+                        <i data-lucide="code" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">协程支持</h3>
+                    <p class="text-white/60 leading-relaxed mb-4">
+                        原生支持Swoole、Workerman协程，轻松实现异步编程，处理高并发IO密集型任务。
+                    </p>
+                    <code class="text-sm text-yellow-400 font-mono">协程异步 • 高并发IO</code>
+                </div>
+
+                <div class="feature-card glass-card p-8 group">
+                    <div class="feature-icon">
+                        <i data-lucide="globe" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">热重载</h3>
+                    <p class="text-white/60 leading-relaxed mb-4">
+                        开发环境支持文件热重载，修改代码立即生效，大幅提升开发效率和体验。
+                    </p>
+                    <code class="text-sm text-blue-400 font-mono">即时生效 • 开发加速</code>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section class="ecosystem-section relative py-32 px-6" style="background: #000; min-height: 100vh;">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="section-title text-white mb-6">
+                    今天<span class="gradient-text">开始</span>
+                </h2>
+                <p class="text-xl text-white/40 max-w-4xl mx-auto">
+                    一个命令，秒级启动高性能应用。零学习成本，平滑迁移现有项目。
+                </p>
+            </div>
+
+            <!-- Quick Start Steps -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-20">
+                <div class="space-y-6 h-full">
+                    <div class="glass-card p-8 relative overflow-hidden h-full">
+                        <div class="absolute top-4 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1 rounded-full font-bold">
+                            推荐方式
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 text-white">Composer 一键安装</h3>
+                        <p class="text-white/60 leading-relaxed mb-6">
+                            使用 Composer 包管理器，一行命令创建完整的 Webman 项目，包含所有依赖和配置文件。
+                        </p>
+                        <div class="code-block">
+                            <pre class="text-sm"><code><span style="color: #c792ea;"># 全局安装 Composer（如果尚未安装）</span>
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
+<span style="color: #c792ea;"># 创建 Webman 项目</span>
+composer create-project workerman/webman:~2.0 myproject
+
+<span style="color: #c792ea;"># 进入项目目录</span>
+cd myproject
+
+<span style="color: #c792ea;"># 启动服务</span>
+php start.php start</code></pre>
+                        </div>
+                        <div class="mt-6 flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+                                <span class="text-white/80 text-sm">自动安装依赖</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+                                <span class="text-white/80 text-sm">配置文件自动生成</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6 h-full">
+                    <div class="glass-card p-8 bg-gradient-to-br from-purple-500/10 to-pink-500/5 border-purple-500/20 h-full">
+                        <h3 class="text-2xl font-bold mb-4 text-white">项目结构</h3>
+                        <div class="code-block" style="min-height: 380px;">
+                            <pre class="text-sm"><code><span style="color: #a78bfa;">webman/</span>
+├── <span style="color: #60a5fa;">app/</span>                    <span style="color: #7982a9;"># 应用目录</span>
+│   ├── <span style="color: #60a5fa;">controller/</span>     <span style="color: #7982a9;"># 控制器</span>
+│   ├── <span style="color: #60a5fa;">model/</span>         <span style="color: #7982a9;"># 模型</span>
+│   ├── <span style="color: #60a5fa;">middleware/</span>    <span style="color: #7982a9;"># 中间件</span>
+│   ├── <span style="color: #60a5fa;">service/</span>       <span style="color: #7982a9;"># 服务类</span>
+│   └── <span style="color: #60a5fa;">validate/</span>      <span style="color: #7982a9;"># 验证器</span>
+├── <span style="color: #60a5fa;">config/</span>               <span style="color: #7982a9;"># 配置文件</span>
+│   ├── <span style="color: #60a5fa;">app.php</span>         <span style="color: #7982a9;"># 应用配置</span>
+│   ├── <span style="color: #60a5fa;">database.php</span>    <span style="color: #7982a9;"># 数据库配置</span>
+│   ├── <span style="color: #60a5fa;">redis.php</span>       <span style="color: #7982a9;"># Redis配置</span>
+│   └── <span style="color: #60a5fa;">route.php</span>       <span style="color: #7982a9;"># 路由配置</span>
+├── <span style="color: #60a5fa;">process/</span>              <span style="color: #7982a9;"># 自定义进程</span>
+├── <span style="color: #60a5fa;">public/</span>               <span style="color: #7982a9;"># 静态资源</span>
+├── <span style="color: #60a5fa;">runtime/</span>              <span style="color: #7982a9;"># 运行时文件</span>
+├── <span style="color: #60a5fa;">support/</span>              <span style="color: #7982a9;"># 支持类</span>
+├── <span style="color: #60a5fa;">vendor/</span>               <span style="color: #7982a9;"># Composer依赖</span>
+├── <span style="color: #60a5fa;">composer.json</span>          <span style="color: #7982a9;"># 项目配置</span>
+└── <span style="color: #60a5fa;">start.php</span>              <span style="color: #7982a9;"># 启动文件</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Installation and Development Info -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-20">
+                <div class="glass-card p-8">
+                    <h3 class="text-2xl font-bold mb-4 text-white">手动安装方式</h3>
+                    <p class="text-white/60 leading-relaxed mb-6">
+                        也可以直接从 GitHub 下载源码，手动配置环境。
+                    </p>
+                    <div class="code-block">
+                        <pre class="text-sm"><code><span style="color: #c792ea;"># 克隆仓库</span>
+git clone https://github.com/walkor/webman.git
+cd webman
+
+<span style="color: #c792ea;"># 安装依赖</span>
+composer install
+
+<span style="color: #c792ea;"># 启动服务</span>
+php start.php start
+
+<span style="color: #c792ea;"># 访问应用</span>
+open http://localhost:8787</code></pre>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8">
+                    <h3 class="text-2xl font-bold mb-4 text-white">开发模式</h3>
+                    <p class="text-white/60 leading-relaxed mb-6">
+                        开发环境支持热重载，修改代码后立即生效，无需重启服务，大幅提升开发效率。
+                    </p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="code-snippet">
+                            <code class="text-xs">php start.php start</code>
+                            <div class="text-xs text-white/60 mt-1">生产模式</div>
+                        </div>
+                        <div class="code-snippet">
+                            <code class="text-xs">php start.php start -d</code>
+                            <div class="text-xs text-white/60 mt-1">守护进程模式</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 space-y-3">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="zap" class="w-5 h-5 text-yellow-400"></i>
+                            <span class="text-white/80">文件修改自动重载</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="eye" class="w-5 h-5 text-blue-400"></i>
+                            <span class="text-white/80">实时查看错误日志</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="shield" class="w-5 h-5 text-green-400"></i>
+                            <span class="text-white/80">开发环境安全保护</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Platform Options -->
+            <div class="mb-20">
+                <h3 class="text-2xl font-bold mb-8 text-center text-white">支持的平台和部署方式</h3>
+                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="start-option glass-card p-8 group cursor-pointer">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                                <i data-lucide="server" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Linux</h3>
+                        </div>
+                        <p class="text-white/60 mb-4 text-sm leading-relaxed">
+                            完美支持所有主流Linux发行版
+                        </p>
+                        <div class="text-xs text-blue-400">Ubuntu • CentOS • Debian</div>
+                    </div>
+
+                    <div class="start-option glass-card p-8 group cursor-pointer">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg flex items-center justify-center">
+                                <i data-lucide="monitor" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Windows</h3>
+                        </div>
+                        <p class="text-white/60 mb-4 text-sm leading-relaxed">
+                            原生支持Windows平台开发
+                        </p>
+                        <div class="text-xs text-gray-400">Windows 10/11 • Server</div>
+                    </div>
+
+                    <div class="start-option glass-card p-8 group cursor-pointer">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex items-center justify-center">
+                                <i data-lucide="terminal" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">macOS</h3>
+                        </div>
+                        <p class="text-white/60 mb-4 text-sm leading-relaxed">
+                            完美支持macOS开发环境
+                        </p>
+                        <div class="text-xs text-gray-400">Intel • Apple Silicon</div>
+                    </div>
+
+                    <div class="start-option glass-card p-8 group cursor-pointer">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg flex items-center justify-center">
+                                <i data-lucide="cloud" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Docker</h3>
+                        </div>
+                        <p class="text-white/60 mb-4 text-sm leading-relaxed">
+                            容器化部署，一键上线
+                        </p>
+                        <div class="text-xs text-orange-400">K8s • Docker Compose</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Stats -->
+            <div class="glass-card p-12 bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/20 mb-12">
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-bold mb-4 text-white">启动成功！</h3>
+                    <p class="text-lg text-white/60">恭喜！您的Webman应用已经运行在百万级QPS的超高性能框架上！</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="text-center">
+                        <div class="text-3xl font-black text-green-400 mb-2">8787</div>
+                        <div class="text-white/60">默认端口</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-black text-blue-400 mb-2">0.08ms</div>
+                        <div class="text-white/60">响应时间</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-black text-purple-400 mb-2">100万+</div>
+                        <div class="text-white/60">QPS吞吐</div>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <div class="code-snippet inline-block">
+                        <code class="text-sm">http://localhost:8787</code>
+                    </div>
+                    <p class="text-white/60 mt-2">在浏览器中访问查看效果</p>
+                </div>
+            </div>
+
+            <!-- Resources -->
+            <div class="text-center">
+                <h3 class="text-2xl font-bold mb-6 text-white">学习资源</h3>
+                <div class="flex justify-center gap-8 flex-wrap">
+                    <a href="https://www.workerman.net/doc/webman/" target="_blank" class="glass-border px-6 py-3 text-white hover:bg-white/10 transition-all rounded-full">
+                        <i data-lucide="book" class="w-4 h-4 inline mr-2"></i>
+                        官方文档
+                    </a>
+                    <a href="https://github.com/walkor/webman" target="_blank" class="glass-border px-6 py-3 text-white hover:bg-white/10 transition-all rounded-full">
+                        <i data-lucide="github" class="w-4 h-4 inline mr-2"></i>
+                        GitHub
+                    </a>
+                    <a href="https://www.workerman.net/q" target="_blank" class="glass-border px-6 py-3 text-white hover:bg-white/10 transition-all rounded-full">
+                        <i data-lucide="users" class="w-4 h-4 inline mr-2"></i>
+                        社区论坛
+                    </a>
+                    <a href="https://www.workerman.net/video" target="_blank" class="glass-border px-6 py-3 text-white hover:bg-white/10 transition-all rounded-full">
+                        <i data-lucide="video" class="w-4 h-4 inline mr-2"></i>
+                        视频教程
+                    </a>
+                </div>
+                <p class="text-white/40 mt-6">
+                    遇到问题？查看 <a href="https://www.workerman.net/doc/webman/faq.html" target="_blank" class="text-purple-400 hover:text-purple-300 transition-colors">常见问题</a> 或在社区提问
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section relative py-32 px-6 cta-gradient overflow-hidden">
+        <div class="gradient-orb gradient-orb-1" style="opacity: 0.2;"></div>
+        <div class="gradient-orb gradient-orb-2" style="opacity: 0.2;"></div>
+
+        <div class="relative z-10 max-w-5xl mx-auto text-center">
+            <h2 class="section-title text-white mb-8">
+                用Webman构建
+                <span class="block mt-2">
+                    <span class="hero-title" style="font-size: clamp(3rem, 10vw, 8rem);">高性能应用</span>
+                </span>
+            </h2>
+
+            <p class="text-xl md:text-2xl text-white/60 mb-12 max-w-3xl mx-auto">
+                加入高性能PHP开发新时代，体验Webman带来的极致性能
+            </p>
+
+            <button class="aurora-button text-lg">
+                立即开始使用 Webman
+            </button>
+
+            <div class="mt-20 flex justify-center gap-8 text-white/40">
+                <a href="https://github.com/walkor/webman" target="_blank" class="hover:text-purple-400 transition-colors">GitHub</a>
+                <a href="https://www.workerman.net/doc/webman/" target="_blank" class="hover:text-purple-400 transition-colors">文档</a>
+                <a href="https://www.workerman.net/q" target="_blank" class="hover:text-purple-400 transition-colors">社区</a>
+                <a href="https://www.workerman.net/video" target="_blank" class="hover:text-purple-400 transition-colors">视频教程</a>
+            </div>
+
+            <div class="mt-12 text-sm text-white/30">
+                基于 Workerman • 常驻内存框架 • 开源免费
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Wait for DOM to load
+        window.addEventListener('DOMContentLoaded', function() {
+            // Initialize Lucide icons
+            lucide.createIcons();
+
+            // Ensure all sections are visible
+            document.querySelectorAll('section').forEach(section => {
+                section.style.opacity = '1';
+                section.style.visibility = 'visible';
+            });
+
+            // Ensure all cards are visible
+            document.querySelectorAll('.glass-card, .feature-card, .why-card, .tool-card, .stat-card').forEach(card => {
+                card.style.opacity = '1';
+                card.style.visibility = 'visible';
+            });
+        });
+
+        // Initialize Lenis smooth scrolling
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            smooth: true,
+            smoothWheel: true
+        });
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // Initialize GSAP
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero animations
+        const heroTimeline = gsap.timeline();
+
+        heroTimeline
+            .from(".floating-badge", {
+                y: -30,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            })
+            .from(".hero-title", {
+                y: 100,
+                opacity: 0,
+                duration: 1.5,
+                ease: "power4.out"
+            }, "-=0.5")
+            .from(".hero-subtitle", {
+                y: 30,
+                opacity: 0,
+                duration: 1,
+                stagger: 0.2,
+                ease: "power3.out"
+            }, "-=0.8")
+            .from(".stat-card", {
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power2.out"
+            }, "-=0.5")
+            .from(".aurora-button", {
+                y: 20,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.out"
+            }, "-=0.3");
+
+        // Performance bars animation
+        ScrollTrigger.create({
+            trigger: ".features-section",
+            start: "top 80%",
+            onEnter: () => {
+                gsap.from(".performance-bar", {
+                    height: 0,
+                    duration: 1.5,
+                    ease: "power2.out",
+                    stagger: 0.1
+                });
+            }
+        });
+
+        // Parallax effect for gradient orbs
+        gsap.to(".gradient-orb-1", {
+            scrollTrigger: {
+                trigger: ".hero-container",
+                scrub: 1,
+                start: "top top",
+                end: "bottom top"
+            },
+            y: -100,
+            x: -50,
+            ease: "none"
+        });
+
+        gsap.to(".gradient-orb-2", {
+            scrollTrigger: {
+                trigger: ".hero-container",
+                scrub: 1,
+                start: "top top",
+                end: "bottom top"
+            },
+            y: 100,
+            x: 50,
+            ease: "none"
+        });
+
+        gsap.to(".gradient-orb-3", {
+            scrollTrigger: {
+                trigger: ".hero-container",
+                scrub: 1,
+                start: "top top",
+                end: "bottom top"
+            },
+            y: -50,
+            x: -30,
+            ease: "none"
+        });
+
+        // Button click handler
+        document.querySelectorAll('.aurora-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Smooth scroll to quick start section
+                document.querySelector('.ecosystem-section').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
