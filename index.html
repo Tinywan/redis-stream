@@ -615,6 +615,83 @@
             transform: translateY(-2px);
         }
 
+        /* Hero Install Command */
+        .hero-install {
+            margin-top: clamp(1.5rem, 3vh, 2.5rem);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .install-command-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .install-command {
+            display: inline-block;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.6);
+            border-radius: 8px;
+            padding: 1.1rem 1rem;
+            flex: 0 1 auto;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+            color: var(--text-primary);
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .install-command:hover {
+            background: var(--card-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .copy-command-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.6);
+            padding: 1.1rem 1rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+            line-height: 1.6;
+        }
+
+        .copy-command-btn:hover {
+            background: var(--card-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.5);
+            color: var(--text-primary);
+        }
+
+        .copy-command-btn:active {
+            transform: translateY(0);
+        }
+
+        .copy-command-btn.copied {
+            background: var(--performance-green);
+            border-color: var(--performance-green);
+            color: white;
+        }
+
         /* Install Section - 简化版 */
         .install {
             padding: 4rem 0;
@@ -1663,6 +1740,26 @@
                 padding: 0.5rem 1rem;
                 font-size: 0.85rem;
             }
+
+            .install-command-wrapper {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .install-command {
+                width: 100%;
+                max-width: 350px;
+                text-align: center;
+                font-size: clamp(1rem, 3vw, 1.3rem);
+            }
+
+            .copy-command-btn {
+                width: 100%;
+                max-width: 150px;
+                margin: 0 auto;
+                font-size: clamp(0.9rem, 2.5vw, 1rem);
+            }
         }
 
         @media (max-width: 480px) {
@@ -1689,6 +1786,7 @@
             <div class="nav-content">
                 <div class="logo">🚀 Redis Stream Queue</div>
                 <ul class="nav-links">
+                    <li><a href="#hero">首页</a></li>
                     <li><a href="#quick-install">快速安装</a></li>
                     <li><a href="#features">核心特性</a></li>
                     <li><a href="#performance">性能基准</a></li>
@@ -1700,7 +1798,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section id="hero" class="hero">
         <div class="time-stream">
             <div class="queue-channel"></div>
             <div class="time-trail"></div>
@@ -1713,9 +1811,15 @@
                 <div class="subtitle-wrapper">
                     <p class="subtitle">基于 Redis Stream 高性能轻量级消息队列</p>
                 </div>
-                <div class="hero-buttons">
-                    <a href="#quick-install" class="btn btn-primary">快速开始</a>
-                    <a href="https://github.com/Tinywan/redis-stream" class="btn btn-secondary">查看文档</a>
+                <div class="hero-install">
+                    <div class="install-command-wrapper">
+                        <div class="install-command">
+                            composer require tinywan/redis-stream
+                        </div>
+                        <button class="copy-command-btn" onclick="copyCommand()" title="复制命令">
+                            复制
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1725,12 +1829,7 @@
     <section id="quick-install" class="install">
         <div class="container">
             <div class="install-simple">
-                <h2 class="section-title">快速使用</h2>
-                <div class="code-block simple">
-                    <button class="copy-btn" onclick="copyCode()">复制</button>
-                    <div id="install-code">composer require tinywan/redis-stream</div>
-                </div>
-
+                <h2 class="section-title">入门使用</h2>
                 <!-- 独立的生产者和消费者示例 -->
                 <div class="usage-simple">
                     <div class="code-examples-grid">
@@ -1920,8 +2019,8 @@
                 <div class="footer-section">
                     <h4>文档</h4>
                     <ul>
+                        <li><a href="#hero">首页</a></li>
                         <li><a href="#quick-install">快速安装</a></li>
-                        <li><a href="#quick-start">快速开始</a></li>
                         <li><a href="#features">核心特性</a></li>
                         <li><a href="#performance">性能基准</a></li>
                         <li><a href="#frameworks">框架集成</a></li>
@@ -1946,6 +2045,33 @@
                 setTimeout(() => {
                     button.textContent = originalText;
                     button.style.background = 'var(--primary-color)';
+                }, 2000);
+            });
+        }
+
+        function copyCommand() {
+            const commandText = 'composer require tinywan/redis-stream';
+            navigator.clipboard.writeText(commandText).then(() => {
+                const button = document.querySelector('.copy-command-btn');
+                const originalText = button.textContent;
+                button.textContent = '已复制';
+                button.classList.add('copied');
+                button.title = '已复制!';
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                    button.title = '复制命令';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                const button = document.querySelector('.copy-command-btn');
+                const originalText = button.textContent;
+                button.textContent = '复制失败';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.title = '复制命令';
                 }, 2000);
             });
         }
