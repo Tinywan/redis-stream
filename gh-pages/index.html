@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Stream Queue - 测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #dc382d 0%, #c7362c 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .status {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid rgba(16, 185, 129, 0.5);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .success {
+            color: #10b981;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .time {
+            margin-top: 2rem;
+            opacity: 0.8;
+        }
+
+        .links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: white;
+            color: #dc382d;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .url-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+
+        .correct-url {
+            color: #10b981;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Redis Stream Queue</h1>
+        <p class="subtitle">基于 Redis Stream 的高性能轻量级消息队列</p>
+        
+        <div class="status">
+            <div class="success">✅ GitHub Pages 测试成功！</div>
+            <p>如果您能看到这个页面，说明 GitHub Pages 已正确配置并部署。</p>
+            <p>这是使用 Redis 品牌红色的全新设计。</p>
+        </div>
+
+        <div class="url-info">
+            <p><strong>正确访问地址：</strong></p>
+            <p class="correct-url">https://tinywan.github.io/redis-stream/</p>
+        </div>
+
+        <div class="links">
+            <a href="https://github.com/Tinywan/redis-stream" class="btn">📖 GitHub 仓库</a>
+            <a href="https://packagist.org/packages/tinywan/redis-stream" class="btn">📦 安装包</a>
+        </div>
+
+        <div class="time">
+            页面更新时间：<script>document.write(new Date().toLocaleString('zh-CN'));</script>
+        </div>
+    </div>
+</body>
+</html>

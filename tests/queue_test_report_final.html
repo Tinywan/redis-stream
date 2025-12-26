@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Stream Queue 测试报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .meta-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .meta-item strong {
+            display: block;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .meta-item span {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .status-pass {
+            color: #10b981;
+        }
+        
+        .status-partial {
+            color: #f59e0b;
+        }
+        
+        .status-fail {
+            color: #ef4444;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #4facfe;
+            padding-bottom: 10px;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .results-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .results-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .results-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .test-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .detail-header {
+            padding: 15px;
+            margin: 20px 0 10px 0;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .detail-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .header-pass {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .header-fail {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .detail-content {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4facfe;
+        }
+        
+        .error-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .error-item {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        
+        .error-summary {
+            text-align: center;
+            padding: 10px;
+            background: #fef3c7;
+            border-radius: 6px;
+            color: #92400e;
+            font-weight: 600;
+        }
+        
+        .no-errors {
+            text-align: center;
+            padding: 20px;
+            color: #10b981;
+            font-weight: 600;
+            background: #d1fae5;
+            border-radius: 6px;
+        }
+        
+        .footer {
+            background: #1f2937;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .meta-info {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .results-table {
+                font-size: 0.9em;
+            }
+            
+            .results-table th,
+            .results-table td {
+                padding: 10px;
+            }
+        }
+        
+        /* 滚动条样式 */
+        .error-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .error-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        .error-list::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        
+        .error-list::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Redis Stream Queue 测试报告</h1>
+            <div class="meta-info">
+                <div class="meta-item">
+                    <strong>生成时间</strong>
+                    <span>2025-09-27 10:03:59</span>
+                </div>
+                <div class="meta-item">
+                    <strong>整体状态</strong>
+                    <span class="status-pass">通过: 6/6</span>
+                </div>
+                <div class="meta-item">
+                    <strong>通过率</strong>
+                    <span>100%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📊 测试结果概览</h2>
+                <table class="results-table">
+            <thead>
+                <tr>
+                    <th>测试名称</th>
+                    <th>状态</th>
+                    <th>耗时</th>
+                    <th>详细信息</th>
+                </tr>
+            </thead>
+            <tbody><tr>
+                <td class="test-name">Consistency Test</td>
+                <td class="status-pass">✅ 通过</td>
+                <td>5.35 秒</td>
+                <td>发送: 1000, 接收: 1000</td>
+            </tr><tr>
+                <td class="test-name">Integrity Test</td>
+                <td class="status-pass">✅ 通过</td>
+                <td>2.97 秒</td>
+                <td>完整性违规: 0</td>
+            </tr><tr>
+                <td class="test-name">Concurrency Test</td>
+                <td class="status-pass">✅ 通过</td>
+                <td>10.69 秒</td>
+                <td></td>
+            </tr><tr>
+                <td class="test-name">Performance Test</td>
+                <td class="status-pass">✅ 通过</td>
+                <td>9.77 秒</td>
+                <td>吞吐量: 161.31408930532 消息/秒, 延迟: 8711.3390908241 毫秒</td>
+            </tr><tr>
+                <td class="test-name">Error Recovery Test</td>
+                <td class="status-pass">✅ 通过</td>
+                <td>0.44 秒</td>
+                <td>恢复成功率: 100%</td>
+            </tr><tr>
+                <td class="test-name">Boundary Conditions Test</td>
+                <td class="status-pass">✅ 通过</td>
+                <td>0.02 秒</td>
+                <td></td>
+            </tr></tbody></table>
+            </div>
+            
+            <div class="section">
+                <h2>🔍 详细信息</h2>
+                <div class="test-details">
+                <h3 class="detail-header header-pass">
+                    Consistency Test
+                </h3>
+                <div class="detail-content"><div class="no-errors">没有发现错误</div></div></div><div class="test-details">
+                <h3 class="detail-header header-pass">
+                    Integrity Test
+                </h3>
+                <div class="detail-content"><div class="no-errors">没有发现错误</div></div></div><div class="test-details">
+                <h3 class="detail-header header-pass">
+                    Concurrency Test
+                </h3>
+                <div class="detail-content"><div class="error-list"><div class="error-item">Note: Processed 500/1000 messages (normal consumer group distribution)</div><div class="error-item">No race conditions detected - concurrency test passed</div></div></div></div><div class="test-details">
+                <h3 class="detail-header header-pass">
+                    Performance Test
+                </h3>
+                <div class="detail-content"><div class="no-errors">没有发现错误</div></div></div><div class="test-details">
+                <h3 class="detail-header header-pass">
+                    Error Recovery Test
+                </h3>
+                <div class="detail-content"><div class="no-errors">没有发现错误</div></div></div><div class="test-details">
+                <h3 class="detail-header header-pass">
+                    Boundary Conditions Test
+                </h3>
+                <div class="detail-content"><div class="no-errors">没有发现错误</div></div></div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Redis Stream Queue 测试报告 | 由测试框架自动生成</p>
+        </div>
+    </div>
+    
+    <script>
+        // 添加交互效果
+        document.addEventListener("DOMContentLoaded", function() {
+            // 详细信息折叠/展开功能
+            const detailHeaders = document.querySelectorAll(".detail-header");
+            
+            detailHeaders.forEach(header => {
+                header.addEventListener("click", function() {
+                    const content = this.nextElementSibling;
+                    const isVisible = content.style.display !== "none";
+                    
+                    if (isVisible) {
+                        content.style.display = "none";
+                        this.style.opacity = "0.7";
+                    } else {
+                        content.style.display = "block";
+                        this.style.opacity = "1";
+                    }
+                });
+            });
+            
+            // 表格行高亮效果
+            const tableRows = document.querySelectorAll(".results-table tbody tr");
+            tableRows.forEach(row => {
+                row.addEventListener("mouseenter", function() {
+                    this.style.transform = "scale(1.01)";
+                    this.style.transition = "transform 0.2s ease";
+                });
+                
+                row.addEventListener("mouseleave", function() {
+                    this.style.transform = "scale(1)";
+                });
+            });
+        });
+    </script>
+</body>
+</html>
